@@ -22,11 +22,9 @@ int main (int , char * [])
         viewport_height, 
         { 3, 3 }
     );
-    
     Scene scene(viewport_width, viewport_height);
-
     bool exit = false;
-
+    
     do
     {
         // Se procesan los eventos acumulados:
