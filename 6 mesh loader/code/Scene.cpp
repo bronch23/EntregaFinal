@@ -74,7 +74,7 @@ namespace udit
 
         resize (width, height);
 
-        load_mesh ("../../../shared/assets/stanford-bunny.obj");
+        load_mesh ("../../../shared/assets/Fox.obj");
     }
 
     Scene::~Scene()
@@ -96,7 +96,7 @@ namespace udit
 
         glm::mat4 model_view_matrix(1);
 
-        model_view_matrix = glm::translate (model_view_matrix, glm::vec3(0.f, 0.f, -2.75f));
+        model_view_matrix = glm::translate (model_view_matrix, glm::vec3(0.f, 0.f, -250.0f));
         model_view_matrix = glm::rotate    (model_view_matrix, angle, glm::vec3(0.f, 1.f, 0.f));
 
         glUniformMatrix4fv (model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
