@@ -24,11 +24,18 @@ namespace udit
 
         resize(width, height);
 
-        // Cargar tres mallas
-        
-        load_mesh("../../../shared/assets/Fox.obj", glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -255.f))); // Tanque
-        load_mesh("../../../shared/assets/stanford-bunny.obj", glm::translate(glm::mat4(1.0f), glm::vec3(-3.f, 0.f, -7.f))); // Árbol 1
-        load_mesh("../../../shared/assets/stanford-bunny.obj", glm::translate(glm::mat4(1.0f), glm::vec3(3.f, 0.f, -7.f)));  // Árbol 2
+        // Cargar tres mallas con ajustes en la rotación del eje X
+        load_mesh("../../../shared/assets/Foxx.fbx",
+            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
+                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f))); // Zorro
+
+        load_mesh("../../../shared/assets/Pig.fbx",
+            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-300.f, -20.f, -400.f)),
+                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f))); // Cerdo
+
+        load_mesh("../../../shared/assets/Wolf.fbx",
+            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -20.f, -400.f)),
+                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f))); // Lobo
     }
 
     Scene::~Scene()
@@ -101,7 +108,7 @@ namespace udit
 
         for (const auto& mesh : meshes)
         {
-            glm::mat4 model_view_matrix = glm::rotate(mesh.model_matrix, angle, glm::vec3(0.f, 1.f, 0.f));
+            glm::mat4 model_view_matrix = glm::rotate(mesh.model_matrix, angle, glm::vec3(0.f, 0.f, 1.f));
             glUniformMatrix4fv(model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
 
             glBindVertexArray(mesh.vao_id);
@@ -167,4 +174,5 @@ namespace udit
     }
 
 }
+
 
