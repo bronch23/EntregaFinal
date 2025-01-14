@@ -1,63 +1,45 @@
 
-// Este código es de dominio público
-// angel.rodriguez@udit.es
+#ifndef SCENE_HPP
+#define SCENE_HPP
 
-#ifndef SCENE_HEADER
-#define SCENE_HEADER
+#include <vector>
+#include <string>
+#include <glm.hpp> // Biblioteca para matemáticas 3D
+#include <glad/glad.h>
 
-    #include <glad/glad.h>
-    #include <glm.hpp>
-    #include <string>
-
-    namespace udit
+namespace udit
+{
+    class Scene
     {
+    public:
+        Scene(int width, int height);
+        ~Scene();
 
-        using glm::vec3;
+        void update();
+        void render();
+        void resize(int width, int height);
 
-        class Scene
+    private:
+        struct Mesh
         {
-        private:
-
-            enum
-            {
-                COORDINATES_VBO,
-                COLORS_VBO,
-                INDICES_EBO,
-                VBO_COUNT
-            };
-
-            static const std::string   vertex_shader_code;
-            static const std::string fragment_shader_code;
-
-            GLuint  vbo_ids[VBO_COUNT];
-            GLuint  vao_id;
-
-            GLsizei number_of_indices;
-
-            GLint   model_view_matrix_id;
-            GLint   projection_matrix_id;
-
-            float   angle;
-
-        public:
-
-            Scene(int width, int height);
-           ~Scene();
-
-            void   update ();
-            void   render ();
-            void   resize (int width, int height);
-
-        private:
-
-            GLuint compile_shaders        ();
-            void   show_compilation_error (GLuint  shader_id);
-            void   show_linkage_error     (GLuint program_id);
-            void   load_mesh              (const std::string & mesh_file_path);
-            vec3   random_color           ();
-
+            GLuint vao_id; // Identificador del Vertex Array Object
+            GLuint vbo_ids[3]; // Buffers para vértices, colores e índices
+            GLsizei number_of_indices; // Cantidad de índices
+            glm::mat4 model_matrix; // Matriz de transformación
         };
 
-    }
+        std::vector<Mesh> meshes; // Contenedor para múltiples mallas
+
+        GLuint model_view_matrix_id;
+        GLuint projection_matrix_id;
+
+        float angle;
+
+        void load_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix);
+        GLuint compile_shaders();
+        glm::vec3 random_color();
+    };
+}
 
 #endif
+
