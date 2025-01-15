@@ -22,10 +22,20 @@ namespace udit
 
         model_view_matrix_id = glGetUniformLocation(program_id, "model_view_matrix");
         projection_matrix_id = glGetUniformLocation(program_id, "projection_matrix");
+        normal_matrix_id = glGetUniformLocation(program_id, "normal_matrix");
 
         resize(width, height);
 
-        // Cargar mallas con texturas
+        GLint light_position = glGetUniformLocation(program_id, "light.position");
+        GLint light_color = glGetUniformLocation(program_id, "light.color");
+        GLint ambient_intensity = glGetUniformLocation(program_id, "ambient_intensity");
+        GLint diffuse_intensity = glGetUniformLocation(program_id, "diffuse_intensity");
+        glUniform4f(light_position, 10.0f, 10.0f, 10.0f, 1.0f);
+        glUniform3f(light_color, 1.0f, 1.0f, 1.0f);
+        glUniform1f(ambient_intensity, 0.2f);
+        glUniform1f(diffuse_intensity, 0.8f);
+
+        // Cargar múltiples mallas
         load_mesh("../../../shared/assets/Foxx.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
@@ -63,15 +73,23 @@ namespace udit
             Mesh mesh;
             mesh.model_matrix = model_matrix;
 
-            glGenBuffers(3, mesh.vbo_ids);
+            glGenBuffers(4, mesh.vbo_ids);
             glGenVertexArrays(1, &mesh.vao_id);
             glBindVertexArray(mesh.vao_id);
 
+            // Configurar vértices
             glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[0]);
             glBufferData(GL_ARRAY_BUFFER, ai_mesh->mNumVertices * sizeof(aiVector3D), ai_mesh->mVertices, GL_STATIC_DRAW);
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
+            // Configurar normales
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[1]);
+            glBufferData(GL_ARRAY_BUFFER, ai_mesh->mNumVertices * sizeof(aiVector3D), ai_mesh->mNormals, GL_STATIC_DRAW);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+            // Configurar coordenadas UV
             std::vector<glm::vec2> texture_coords(ai_mesh->mNumVertices);
             for (unsigned i = 0; i < ai_mesh->mNumVertices; ++i)
             {
@@ -80,11 +98,12 @@ namespace udit
                     texture_coords[i] = glm::vec2(ai_mesh->mTextureCoords[0][i].x, ai_mesh->mTextureCoords[0][i].y);
                 }
             }
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[1]);
+            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[2]);
             glBufferData(GL_ARRAY_BUFFER, texture_coords.size() * sizeof(glm::vec2), texture_coords.data(), GL_STATIC_DRAW);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
+            // Configurar índices
             std::vector<GLushort> indices;
             for (unsigned i = 0; i < ai_mesh->mNumFaces; ++i)
             {
@@ -92,9 +111,10 @@ namespace udit
                 indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
             }
             mesh.number_of_indices = indices.size();
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo_ids[2]);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo_ids[3]);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLushort), indices.data(), GL_STATIC_DRAW);
 
+            // Cargar textura
             mesh.texture_id = create_texture_2d(texture_path);
             meshes.push_back(mesh);
         }
@@ -103,6 +123,7 @@ namespace udit
             std::cerr << "Failed to load mesh: " << mesh_file_path << std::endl;
         }
     }
+
 
     GLuint Scene::create_texture_2d(const std::string& texture_path)
     {
@@ -133,9 +154,14 @@ namespace udit
         for (const auto& mesh : meshes)
         {
             glm::mat4 model_view_matrix = glm::rotate(mesh.model_matrix, angle, glm::vec3(0.f, 0.f, 1.f));
-            glUniformMatrix4fv(model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
+            glm::mat4 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
 
+            glUniformMatrix4fv(model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
+            glUniformMatrix4fv(normal_matrix_id, 1, GL_FALSE, glm::value_ptr(normal_matrix));
+
+            glActiveTexture(GL_TEXTURE0); // Activar la textura base
             glBindTexture(GL_TEXTURE_2D, mesh.texture_id);
+            glUniform1i(glGetUniformLocation(program_id, "texture_sampler"), 0);
 
             glBindVertexArray(mesh.vao_id);
             glDrawElements(GL_TRIANGLES, mesh.number_of_indices, GL_UNSIGNED_SHORT, 0);
@@ -152,26 +178,43 @@ namespace udit
     GLuint Scene::compile_shaders()
     {
         const char* vertex_shader_code = R"(
-        #version 330
-        uniform mat4 model_view_matrix;
-        uniform mat4 projection_matrix;
-        layout (location = 0) in vec3 vertex_coordinates;
-        layout (location = 1) in vec2 vertex_texture_uv;
-        out vec2 texture_uv;
-        void main() {
-            gl_Position = projection_matrix * model_view_matrix * vec4(vertex_coordinates, 1.0);
-            texture_uv = vertex_texture_uv;
-        }
+    #version 330
+    struct Light {
+        vec4 position;
+        vec3 color;
+    };
+    uniform Light light;
+    uniform float ambient_intensity;
+    uniform float diffuse_intensity;
+    uniform mat4 model_view_matrix;
+    uniform mat4 projection_matrix;
+    uniform mat4 normal_matrix;
+    layout (location = 0) in vec3 vertex_coordinates;
+    layout (location = 1) in vec3 vertex_normal;
+    layout (location = 2) in vec2 vertex_texture_uv;
+    out vec2 texture_uv;
+    out vec3 front_color;
+    void main() {
+        vec4 position = model_view_matrix * vec4(vertex_coordinates, 1.0);
+        vec4 normal = normal_matrix * vec4(vertex_normal, 0.0);
+        vec4 light_dir = light.position - position;
+        float intensity = diffuse_intensity * max(dot(normalize(normal.xyz), normalize(light_dir.xyz)), 0.0);
+        front_color = (ambient_intensity + intensity) * light.color;
+        texture_uv = vertex_texture_uv;
+        gl_Position = projection_matrix * position;
+    }
     )";
 
         const char* fragment_shader_code = R"(
-        #version 330
-        uniform sampler2D texture_sampler;
-        in vec2 texture_uv;
-        out vec4 fragment_color;
-        void main() {
-            fragment_color = texture(texture_sampler, texture_uv);
-        }
+    #version 330
+    in vec3 front_color;
+    in vec2 texture_uv;
+    uniform sampler2D texture_sampler;
+    out vec4 fragment_color;
+    void main() {
+        vec4 tex_color = texture(texture_sampler, texture_uv);
+        fragment_color = vec4(front_color, 1.0) * tex_color;
+    }
     )";
 
         GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -194,6 +237,7 @@ namespace udit
 
         return program_id;
     }
+
 
 }
 
