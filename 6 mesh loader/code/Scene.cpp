@@ -36,6 +36,7 @@ namespace udit
         glUniform1f(ambient_intensity, 0.2f);
         glUniform1f(diffuse_intensity, 0.8f);
         
+
         // Cargar múltiples mallas
         load_mesh("../../../shared/assets/Foxx.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
@@ -48,12 +49,10 @@ namespace udit
             "../../../shared/assets/Pig_BaseColor.png");
 
         load_mesh("../../../shared/assets/Wolf.fbx",
-            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -20.f, -400.f)),
+            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -150.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Wolf_BaseColor.png");
 
-        //camera.set_location(0.f, 0.f, 3.f);
-        //camera.set_ratio(float(width) / height);
 
         angle_around_x = angle_delta_x = 0.0;
         angle_around_y = angle_delta_y = 0.0;

@@ -87,7 +87,7 @@ namespace udit
 
     Skybox::Skybox()
         :
-        texture_cube("../../../shared/assets/sky-cube-map-")
+        texture_cube("../../../shared/assets/cubemap-")
     {
         assert(texture_cube.is_ok());
 
