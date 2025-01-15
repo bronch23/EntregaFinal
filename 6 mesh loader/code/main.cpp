@@ -33,9 +33,23 @@ int main (int , char * [])
 
         while (SDL_PollEvent (&event) > 0)
         {
-            if (event.type == SDL_QUIT)
+            switch (event.type)
             {
+            case SDL_MOUSEBUTTONDOWN:
+                scene.on_click(event.button.x, event.button.y, true);
+                break;
+
+            case SDL_MOUSEBUTTONUP:
+                scene.on_click(event.button.x, event.button.y, false);
+                break;
+
+            case SDL_MOUSEMOTION:
+                scene.on_drag(event.motion.x, event.motion.y);
+                break;
+
+            case SDL_QUIT:
                 exit = true;
+                break;
             }
         }
 

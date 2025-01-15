@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+
 namespace udit
 {
 
@@ -34,7 +35,7 @@ namespace udit
         glUniform3f(light_color, 1.0f, 1.0f, 1.0f);
         glUniform1f(ambient_intensity, 0.2f);
         glUniform1f(diffuse_intensity, 0.8f);
-
+        
         // Cargar múltiples mallas
         load_mesh("../../../shared/assets/Foxx.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
@@ -50,6 +51,13 @@ namespace udit
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -20.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Wolf_BaseColor.png");
+
+        //camera.set_location(0.f, 0.f, 3.f);
+        //camera.set_ratio(float(width) / height);
+
+        angle_around_x = angle_delta_x = 0.0;
+        angle_around_y = angle_delta_y = 0.0;
+        pointer_pressed = false;
     }
 
     Scene::~Scene()
@@ -145,36 +153,106 @@ namespace udit
     void Scene::update()
     {
         angle += 0.01f;
+        angle_around_x += angle_delta_x;
+        angle_around_y += angle_delta_y;
+
+        if (angle_around_x < -1.5)
+        {
+            angle_around_x = -1.5;
+        }
+        else
+            if (angle_around_x > +1.5)
+            {
+                angle_around_x = +1.5;
+            }
+
+        glm::mat4 camera_rotation(1);
+
+        camera_rotation = glm::rotate(camera_rotation, angle_around_y, glm::vec3(0.f, 1.f, 0.f));
+        camera_rotation = glm::rotate(camera_rotation, angle_around_x, glm::vec3(1.f, 0.f, 0.f));
+
+        camera.set_target(0, 0, -1);
+        camera.rotate(camera_rotation);
     }
 
     void Scene::render()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Renderizar el skybox
+        skybox.render(camera);
+
+        // Usar la cámara para obtener las matrices
+        glm::mat4 view_matrix = camera.get_transform_matrix_inverse();
+        glm::mat4 projection_matrix = camera.get_projection_matrix();
+
+        // Configurar las matrices en el shader
+        glUseProgram(program_id);
+        glUniformMatrix4fv(projection_matrix_id, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+
+        int mesh_index = 0; // Para identificar el modelo específico
         for (const auto& mesh : meshes)
         {
-            glm::mat4 model_view_matrix = glm::rotate(mesh.model_matrix, angle, glm::vec3(0.f, 0.f, 1.f));
+            glm::mat4 model_matrix = mesh.model_matrix;
+
+            // Rotar uno de los modelos
+            if (mesh_index == 0) // Cambia 0 al índice del modelo que quieras rotar
+            {
+                model_matrix = glm::rotate(
+                    model_matrix,
+                    angle, // `angle` se incrementa en `Scene::update`
+                    glm::vec3(0.f, 0.f, 1.f) // Eje de rotación (y-axis)
+                );
+            }
+
+            glm::mat4 model_view_matrix = view_matrix * model_matrix;
             glm::mat4 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
 
             glUniformMatrix4fv(model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
             glUniformMatrix4fv(normal_matrix_id, 1, GL_FALSE, glm::value_ptr(normal_matrix));
 
-            glActiveTexture(GL_TEXTURE0); // Activar la textura base
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, mesh.texture_id);
             glUniform1i(glGetUniformLocation(program_id, "texture_sampler"), 0);
 
             glBindVertexArray(mesh.vao_id);
             glDrawElements(GL_TRIANGLES, mesh.number_of_indices, GL_UNSIGNED_SHORT, 0);
+
+            mesh_index++;
         }
     }
 
-    void Scene::resize(int width, int height)
+    void Scene::resize(int new_width, int new_height)
     {
-        glm::mat4 projection_matrix = glm::perspective(20.f, float(width) / height, 1.f, 5000.f);
+        glm::mat4 projection_matrix = glm::perspective(20.f, float(new_width) / new_height, 1.f, 5000.f);
         glUniformMatrix4fv(projection_matrix_id, 1, GL_FALSE, glm::value_ptr(projection_matrix));
-        glViewport(0, 0, width, height);
+        glViewport(0, 0, new_width, new_height);
+
+        width = new_width;
+        height = new_height;
+        camera.set_ratio(float(new_width) / new_height);
+    }
+    void Scene::on_drag(int pointer_x, int pointer_y)
+    {
+        if (pointer_pressed)
+        {
+            angle_delta_x = 0.025f * float(last_pointer_y - pointer_y) / float(height);
+            angle_delta_y = 0.025f * float(last_pointer_x - pointer_x) / float(width);
+        }
     }
 
+    void Scene::on_click(int pointer_x, int pointer_y, bool down)
+    {
+        if ((pointer_pressed = down) == true)
+        {
+            last_pointer_x = pointer_x;
+            last_pointer_y = pointer_y;
+        }
+        else
+        {
+            angle_delta_x = angle_delta_y = 0.0;
+        }
+    }
     GLuint Scene::compile_shaders()
     {
         const char* vertex_shader_code = R"(
