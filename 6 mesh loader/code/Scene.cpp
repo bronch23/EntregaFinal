@@ -47,6 +47,8 @@ namespace udit
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Fox_BaseColor.png"));
+        mesh_node->meshes.back().rotate_y = true; // Activa rotación para esta malla
+        mesh_node->meshes.back().rotation_speed = 1.f; // Ajusta velocidad de rotación
 
         mesh_node->add_mesh(create_mesh("../../../shared/assets/Pig.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-300.f, -20.f, -400.f)),
@@ -166,7 +168,7 @@ namespace udit
         angle += 0.01f;
         angle_around_x += angle_delta_x;
         angle_around_y += angle_delta_y;
-
+        float delta_time = 0.016f;
         if (angle_around_x < -1.5)
         {
             angle_around_x = -1.5;
@@ -185,6 +187,14 @@ namespace udit
 
         // Actualización del nodo raíz
         root_node->update();
+        for (const auto& child : root_node->get_children())
+        {
+            auto mesh_node = std::dynamic_pointer_cast<MeshNode>(child);
+            if (mesh_node)
+            {
+                mesh_node->update_meshes(delta_time);
+            }
+        }
     }
 
     void Scene::render()

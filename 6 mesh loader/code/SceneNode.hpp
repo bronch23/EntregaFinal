@@ -28,7 +28,7 @@ namespace udit
         {
             children.push_back(std::move(child));
         }
-
+        const std::vector<std::shared_ptr<SceneNode>>& get_children() const { return children; }
         // Actualizar transformaciones recursivamente
         void update(const glm::mat4& parent_transform = glm::mat4(1.0f))
         {
