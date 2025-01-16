@@ -9,6 +9,7 @@
 #include <assimp/postprocess.h>
 #include "MeshNode.hpp"
 #include "SkyboxNode.hpp"
+#include "MeshLoader.hpp"
 
 
 namespace udit
@@ -47,19 +48,19 @@ namespace udit
         root_node->add_child(mesh_node);
 
         // Cargar y asignar mallas al nodo
-        mesh_node->add_mesh(create_mesh("../../../shared/assets/Foxx.fbx",
+        mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Foxx.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Fox_BaseColor.png"));
         mesh_node->meshes.back().rotate_y = true; // Activa rotación para esta malla
         mesh_node->meshes.back().rotation_speed = 1.f; // Ajusta velocidad de rotación
 
-        mesh_node->add_mesh(create_mesh("../../../shared/assets/Pig.fbx",
+        mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Pig.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-300.f, -20.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Pig_BaseColor.png"));
 
-        mesh_node->add_mesh(create_mesh("../../../shared/assets/Wolf.fbx",
+        mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Wolf.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -150.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Wolf_BaseColor.png"));
@@ -81,73 +82,6 @@ namespace udit
             glDeleteTextures(1, &mesh.texture_id);
         }
     }
-
-    MeshNode::Mesh Scene::create_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path)
-    {
-        MeshNode::Mesh mesh;
-        mesh.model_matrix = model_matrix;
-
-        Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(mesh_file_path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
-
-        if (scene && scene->mNumMeshes > 0)
-        {
-            const aiMesh* ai_mesh = scene->mMeshes[0];
-
-            glGenBuffers(4, mesh.vbo_ids);
-            glGenVertexArrays(1, &mesh.vao_id);
-            glBindVertexArray(mesh.vao_id);
-
-            // Configurar vértices
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[0]);
-            glBufferData(GL_ARRAY_BUFFER, ai_mesh->mNumVertices * sizeof(aiVector3D), ai_mesh->mVertices, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-            // Configurar normales
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[1]);
-            glBufferData(GL_ARRAY_BUFFER, ai_mesh->mNumVertices * sizeof(aiVector3D), ai_mesh->mNormals, GL_STATIC_DRAW);
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-            // Configurar coordenadas UV
-            std::vector<glm::vec2> texture_coords(ai_mesh->mNumVertices);
-            for (unsigned i = 0; i < ai_mesh->mNumVertices; ++i)
-            {
-                if (ai_mesh->mTextureCoords[0])
-                {
-                    texture_coords[i] = glm::vec2(ai_mesh->mTextureCoords[0][i].x, ai_mesh->mTextureCoords[0][i].y);
-                }
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo_ids[2]);
-            glBufferData(GL_ARRAY_BUFFER, texture_coords.size() * sizeof(glm::vec2), texture_coords.data(), GL_STATIC_DRAW);
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-            // Configurar índices
-            std::vector<GLushort> indices;
-            for (unsigned i = 0; i < ai_mesh->mNumFaces; ++i)
-            {
-                const aiFace& face = ai_mesh->mFaces[i];
-                indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
-            }
-            mesh.number_of_indices = static_cast<GLsizei>(indices.size());
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo_ids[3]);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLushort), indices.data(), GL_STATIC_DRAW);
-
-            // Cargar textura
-            mesh.texture_id = create_texture_2d(texture_path);
-        }
-        else
-        {
-            std::cerr << "Failed to load mesh: " << mesh_file_path << std::endl;
-        }
-
-        return mesh;
-    }
-
-
-
 
     GLuint Scene::create_texture_2d(const std::string& texture_path)
     {
