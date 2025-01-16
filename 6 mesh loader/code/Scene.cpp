@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "MeshNode.hpp"
+#include "SkyboxNode.hpp"
 
 
 namespace udit
@@ -38,6 +39,9 @@ namespace udit
         glUniform3f(light_color, 1.0f, 1.0f, 1.0f);
         glUniform1f(ambient_intensity, 0.2f);
         glUniform1f(diffuse_intensity, 0.8f);
+
+        auto skybox_node = std::make_shared<SkyboxNode>("../../../shared/assets/cubemap-", camera);
+        root_node->add_child(skybox_node);
 
         auto mesh_node = std::make_shared<MeshNode>();
         root_node->add_child(mesh_node);
@@ -200,9 +204,6 @@ namespace udit
     void Scene::render()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Renderizar el skybox
-        skybox.render(camera);
 
         // Obtener las matrices de la cámara
         glm::mat4 view_matrix = camera.get_transform_matrix_inverse();

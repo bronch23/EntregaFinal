@@ -95,6 +95,7 @@
     <ClInclude Include="..\..\code\Scene.hpp" />
     <ClInclude Include="..\..\code\SceneNode.hpp" />
     <ClInclude Include="..\..\code\Skybox.hpp" />
+    <ClInclude Include="..\..\code\SkyboxNode.hpp" />
     <ClInclude Include="..\..\code\Texture_Cube.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
