@@ -1,6 +1,4 @@
 
-// Este código es de dominio público
-// angel.rodriguez@udit.es
 
 #include "Scene.hpp"
 #include <Window.hpp>

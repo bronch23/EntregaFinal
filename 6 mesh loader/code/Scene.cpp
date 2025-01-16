@@ -102,26 +102,9 @@ namespace udit
 
     void Scene::update()
     {
-        // Lógica existente para la cámara
-        angle += 0.01f;
-        angle_around_x += angle_delta_x;
-        angle_around_y += angle_delta_y;
         float delta_time = 0.016f;
-        if (angle_around_x < -1.5)
-        {
-            angle_around_x = -1.5;
-        }
-        else if (angle_around_x > +1.5)
-        {
-            angle_around_x = +1.5;
-        }
-
-        glm::mat4 camera_rotation(1);
-        camera_rotation = glm::rotate(camera_rotation, angle_around_y, glm::vec3(0.f, 1.f, 0.f));
-        camera_rotation = glm::rotate(camera_rotation, angle_around_x, glm::vec3(1.f, 0.f, 0.f));
-
-        camera.set_target(0, 0, -1);
-        camera.rotate(camera_rotation);
+        // Lógica existente para la cámara
+        camera.apply_rotation();
 
         // Actualización del nodo raíz
         root_node->update();
@@ -172,21 +155,18 @@ namespace udit
     {
         if (pointer_pressed)
         {
-            angle_delta_x = 0.025f * float(last_pointer_y - pointer_y) / float(height);
-            angle_delta_y = 0.025f * float(last_pointer_x - pointer_x) / float(width);
+            float delta_x = 0.025f * float(last_pointer_x - pointer_x) / float(width);
+            float delta_y = 0.025f * float(last_pointer_y - pointer_y) / float(height);
+            camera.add_rotation_delta(delta_x, delta_y);
         }
     }
 
     void Scene::on_click(int pointer_x, int pointer_y, bool down)
     {
-        if ((pointer_pressed = down) == true)
+        if ((pointer_pressed = down))
         {
             last_pointer_x = pointer_x;
             last_pointer_y = pointer_y;
-        }
-        else
-        {
-            angle_delta_x = angle_delta_y = 0.0;
         }
     }
     GLuint Scene::compile_shaders()
