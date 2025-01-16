@@ -12,19 +12,21 @@ namespace udit
     public:
         struct Mesh
         {
-            glm::mat4 model_matrix;
             GLuint vao_id;
             GLuint vbo_ids[4];
             GLuint texture_id;
             GLsizei number_of_indices;
-            bool rotate_y = false; // Nueva variable para determinar si rota
-            float rotation_speed = 0.01f; // Velocidad de rotación
+            glm::mat4 model_matrix;
+            float rotation_speed = 1.0f;
+            bool rotate_y = false;
+
+            float transparency = 1.0f; // Nuevo atributo para transparencia (1.0 = opaco, 0.0 = completamente transparente)
         };
 
         std::vector<Mesh> meshes;
 
         MeshNode() = default;
-
+        void set_mesh_transparency(size_t index, float transparency);
         void add_mesh(const Mesh& mesh);
         void update_meshes(float delta_time);
         void draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, GLuint program_id) override;

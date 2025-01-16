@@ -1,7 +1,7 @@
 #pragma once
 #include "SceneNode.hpp"
 #include "Skybox.hpp"
-#include "Camera.hpp"
+#include "CameraNode.hpp"
 
 namespace udit
 {
@@ -9,19 +9,21 @@ namespace udit
     {
     private:
         Skybox skybox;
-        const Camera& camera;
+        std::shared_ptr<CameraNode> camera_node; // Cambiado a puntero compartido
 
     public:
-        SkyboxNode(const std::string& texture_base_path, const Camera& cam)
-            : skybox(texture_base_path), camera(cam) {
-        }
+        // Constructor que inicializa el Skybox y asocia la cámara
+        SkyboxNode(const std::string& cubemap_path, std::shared_ptr<CameraNode> camera_node)
+            : skybox(cubemap_path), camera_node(camera_node) {}
 
+        // Sobreescribir el método draw
         void draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, GLuint program_id) override
         {
-            // Renderizar el Skybox utilizando la cámara
-            glDepthMask(GL_FALSE);
-            skybox.render(camera);
-            glDepthMask(GL_TRUE);
+            if (camera_node)
+            {
+                glm::mat4 skybox_view_matrix = glm::mat4(glm::mat3(camera_node->get_view_matrix()));
+                skybox.render(skybox_view_matrix, projection_matrix);
+            }
         }
     };
 }

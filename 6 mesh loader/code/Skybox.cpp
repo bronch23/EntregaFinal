@@ -159,27 +159,25 @@ namespace udit
         glDeleteBuffers      (1, &vbo_id);
     }
 
-    void Skybox::render (const Camera & camera)
+    void Skybox::render(const glm::mat4& view_matrix, const glm::mat4& projection_matrix)
     {
-        glUseProgram (shader_program_id);
+        glUseProgram(shader_program_id);
 
-        texture_cube.bind ();
+        texture_cube.bind();
 
-        const glm::mat4   model_view_matrix = camera.get_transform_matrix_inverse ();
-        const glm::mat4 & projection_matrix = camera.get_projection_matrix ();
+        // Usar las matrices pasadas en lugar de depender del objeto Camera
+        glUniformMatrix4fv(model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(view_matrix));
+        glUniformMatrix4fv(projection_matrix_id, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
-        glUniformMatrix4fv (model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
-        glUniformMatrix4fv (projection_matrix_id, 1, GL_FALSE, glm::value_ptr(projection_matrix));
+        glDepthMask(GL_FALSE);
 
-        glDepthMask (GL_FALSE);
+        glBindVertexArray(vao_id);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        glBindVertexArray (vao_id);
-        glDrawArrays (GL_TRIANGLES, 0, 36);
+        glDepthMask(GL_TRUE);
 
-        glDepthMask (GL_TRUE);
-
-        glBindVertexArray (0);
-        glUseProgram (0);
+        glBindVertexArray(0);
+        glUseProgram(0);
     }
 
     GLuint Skybox::compile_shaders ()

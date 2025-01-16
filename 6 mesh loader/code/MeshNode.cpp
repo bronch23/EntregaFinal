@@ -23,6 +23,15 @@ namespace udit
             }
         }
     }
+
+    void MeshNode::set_mesh_transparency(size_t index, float transparency)
+    {
+        if (index < meshes.size())
+        {
+            meshes[index].transparency = glm::clamp(transparency, 0.0f, 1.0f);
+        }
+    }
+
     void MeshNode::draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, GLuint program_id)
     {
         glUseProgram(program_id);
@@ -41,7 +50,23 @@ namespace udit
             glBindTexture(GL_TEXTURE_2D, mesh.texture_id);
             glUniform1i(glGetUniformLocation(program_id, "texture_sampler"), 0);
 
+            // Configurar transparencia
+            glUniform1f(glGetUniformLocation(program_id, "transparency"), mesh.transparency);
+
+            // Activar blending si hay transparencia
+            if (mesh.transparency < 1.0f)
+            {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            }
+
             glDrawElements(GL_TRIANGLES, mesh.number_of_indices, GL_UNSIGNED_SHORT, 0);
+
+            // Desactivar blending si estaba activado
+            if (mesh.transparency < 1.0f)
+            {
+                glDisable(GL_BLEND);
+            }
         }
 
         glBindVertexArray(0);

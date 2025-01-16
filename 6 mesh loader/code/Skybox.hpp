@@ -38,7 +38,7 @@
 
         public:
 
-            void render (const Camera & camera);
+            void render(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
 
         private:
 

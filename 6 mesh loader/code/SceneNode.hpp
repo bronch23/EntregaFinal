@@ -30,7 +30,7 @@ namespace udit
         }
         const std::vector<std::shared_ptr<SceneNode>>& get_children() const { return children; }
         // Actualizar transformaciones recursivamente
-        void update(const glm::mat4& parent_transform = glm::mat4(1.0f))
+        virtual void update(const glm::mat4& parent_transform = glm::mat4(1.0f))
         {
             // Calcular la transformación local
             glm::mat4 local_transform = glm::translate(glm::mat4(1.0f), position);

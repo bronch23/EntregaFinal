@@ -12,6 +12,7 @@
 #include "Skybox.hpp"
 #include "SceneNode.hpp"
 #include "MeshNode.hpp"
+#include "CameraNode.hpp"
 namespace udit
 {
     class Scene
@@ -48,11 +49,12 @@ namespace udit
         GLuint normal_matrix_id;  // Se añade para las normales
         float angle;
 
-        MeshNode::Mesh create_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path);
+        /*MeshNode::Mesh create_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path);*/
         GLuint create_texture_2d(const std::string& texture_path);
         GLuint compile_shaders();
 
         Camera camera;
+        std::shared_ptr<CameraNode> camera_node;
         Skybox skybox;
         // Variables para controlar la cámara
         float angle_around_x, angle_around_y;

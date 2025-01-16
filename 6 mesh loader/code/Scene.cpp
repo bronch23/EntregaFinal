@@ -23,7 +23,6 @@ namespace udit
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
         root_node = std::make_shared<SceneNode>();
-
         program_id = compile_shaders();
         glUseProgram(program_id);
 
@@ -33,7 +32,10 @@ namespace udit
 
         resize(width, height);
 
-        auto skybox_node = std::make_shared<SkyboxNode>("../../../shared/assets/cubemap-", camera);
+        camera_node = std::make_shared<CameraNode>(float(width) / height);
+        root_node->add_child(camera_node);
+
+        auto skybox_node = std::make_shared<SkyboxNode>("../../../shared/assets/cubemap-", camera_node);
         root_node->add_child(skybox_node);
 
         // Crear el nodo de luz y agregarlo al grafo
@@ -50,6 +52,8 @@ namespace udit
             "../../../shared/assets/Fox_BaseColor.png"));
         mesh_node->meshes.back().rotate_y = true; // Activa rotación para esta malla
         mesh_node->meshes.back().rotation_speed = 1.f; // Ajusta velocidad de rotación
+        // Establecer transparencia para el último mesh
+        mesh_node->set_mesh_transparency(mesh_node->meshes.size() - 1, 0.9f);
 
         mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Pig.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-300.f, -20.f, -400.f)),
@@ -100,7 +104,7 @@ namespace udit
     {
         float delta_time = 0.016f;
         // Lógica existente para la cámara
-        camera.apply_rotation();
+        /*camera.apply_rotation();*/
 
         // Actualización del nodo raíz
         root_node->update();
@@ -119,8 +123,8 @@ namespace udit
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Obtener las matrices de la cámara
-        glm::mat4 view_matrix = camera.get_transform_matrix_inverse();
-        glm::mat4 projection_matrix = camera.get_projection_matrix();
+        glm::mat4 view_matrix = camera_node->get_transform_matrix_inverse();
+        glm::mat4 projection_matrix = camera_node->get_projection_matrix();
 
         // Activar el programa de shaders
         glUseProgram(program_id);
@@ -153,7 +157,7 @@ namespace udit
         {
             float delta_x = 0.025f * float(last_pointer_x - pointer_x) / float(width);
             float delta_y = 0.025f * float(last_pointer_y - pointer_y) / float(height);
-            camera.add_rotation_delta(delta_x, delta_y);
+            camera_node->add_rotation_delta(delta_x, delta_y);
         }
     }
 
@@ -197,13 +201,17 @@ namespace udit
 
         const char* fragment_shader_code = R"(
     #version 330
-    in vec3 front_color;
-    in vec2 texture_uv;
-    uniform sampler2D texture_sampler;
-    out vec4 fragment_color;
-    void main() {
-        vec4 tex_color = texture(texture_sampler, texture_uv);
-        fragment_color = vec4(front_color, 1.0) * tex_color;
+        in vec3 front_color;
+        in vec2 texture_uv;
+        uniform sampler2D texture_sampler;
+        uniform float transparency; // Nuevo atributo de transparencia
+        out vec4 fragment_color;
+
+        void main(){
+        
+            vec4 tex_color = texture(texture_sampler, texture_uv);
+            fragment_color = vec4(front_color, 1.0) * tex_color;
+            fragment_color.a *= transparency; // Aplicar transparencia
     }
     )";
 
