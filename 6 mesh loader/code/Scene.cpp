@@ -10,6 +10,7 @@
 #include "MeshNode.hpp"
 #include "SkyboxNode.hpp"
 #include "MeshLoader.hpp"
+#include "LightNode.hpp"
 
 
 namespace udit
@@ -32,17 +33,12 @@ namespace udit
 
         resize(width, height);
 
-        GLint light_position = glGetUniformLocation(program_id, "light.position");
-        GLint light_color = glGetUniformLocation(program_id, "light.color");
-        GLint ambient_intensity = glGetUniformLocation(program_id, "ambient_intensity");
-        GLint diffuse_intensity = glGetUniformLocation(program_id, "diffuse_intensity");
-        glUniform4f(light_position, 10.0f, 10.0f, 10.0f, 1.0f);
-        glUniform3f(light_color, 1.0f, 1.0f, 1.0f);
-        glUniform1f(ambient_intensity, 0.2f);
-        glUniform1f(diffuse_intensity, 0.8f);
-
         auto skybox_node = std::make_shared<SkyboxNode>("../../../shared/assets/cubemap-", camera);
         root_node->add_child(skybox_node);
+
+        // Crear el nodo de luz y agregarlo al grafo
+        auto light_node = std::make_shared<LightNode>(program_id);
+        root_node->add_child(light_node);
 
         auto mesh_node = std::make_shared<MeshNode>();
         root_node->add_child(mesh_node);
