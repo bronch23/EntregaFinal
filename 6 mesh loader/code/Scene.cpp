@@ -22,6 +22,10 @@ namespace udit
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
+        framebuffer.initialize(width, height);
+        initialize_screen_quad();
+        screen_shader_program = compile_screen_shaders();
+
         root_node = std::make_shared<SceneNode>();
         program_id = compile_shaders();
         glUseProgram(program_id);
@@ -120,22 +124,30 @@ namespace udit
 
     void Scene::render()
     {
+        // Renderizar la escena al framebuffer
+        framebuffer.bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Obtener las matrices de la cámara
         glm::mat4 view_matrix = camera_node->get_transform_matrix_inverse();
         glm::mat4 projection_matrix = camera_node->get_projection_matrix();
 
-        // Activar el programa de shaders
         glUseProgram(program_id);
-
-        // Configurar la matriz de proyección en el shader
         glUniformMatrix4fv(projection_matrix_id, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
-        // Dibujar el grafo de escena
         root_node->draw(view_matrix, projection_matrix, program_id);
 
-        // Desactivar el programa de shaders
+        glUseProgram(0);
+        framebuffer.unbind();
+
+        // Renderizar el contenido del framebuffer en pantalla
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram(screen_shader_program);
+
+        glBindVertexArray(screen_quad_vao);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.get_texture());
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+        glBindVertexArray(0);
         glUseProgram(0);
     }
 
@@ -169,6 +181,36 @@ namespace udit
             last_pointer_y = pointer_y;
         }
     }
+    void Scene::initialize_screen_quad()
+    {
+        GLuint quad_vao, quad_vbo;
+        float quad_vertices[] = {
+            // Posiciones   // Coordenadas UV
+            -1.0f,  1.0f,  0.0f, 1.0f,
+            -1.0f, -1.0f,  0.0f, 0.0f,
+             1.0f, -1.0f,  1.0f, 0.0f,
+             1.0f,  1.0f,  1.0f, 1.0f,
+        };
+
+        glGenVertexArrays(1, &quad_vao);
+        glGenBuffers(1, &quad_vbo);
+
+        glBindVertexArray(quad_vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, quad_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), &quad_vertices, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+        glBindVertexArray(0);
+
+        screen_quad_vao = quad_vao; // Guardar el VAO para renderizar el framebuffer
+    }
+
     GLuint Scene::compile_shaders()
     {
         const char* vertex_shader_code = R"(
@@ -212,6 +254,56 @@ namespace udit
             vec4 tex_color = texture(texture_sampler, texture_uv);
             fragment_color = vec4(front_color, 1.0) * tex_color;
             fragment_color.a *= transparency; // Aplicar transparencia
+    }
+    )";
+
+        GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+        GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+        glShaderSource(vertex_shader, 1, &vertex_shader_code, nullptr);
+        glShaderSource(fragment_shader, 1, &fragment_shader_code, nullptr);
+
+        glCompileShader(vertex_shader);
+        glCompileShader(fragment_shader);
+
+        GLuint program_id = glCreateProgram();
+        glAttachShader(program_id, vertex_shader);
+        glAttachShader(program_id, fragment_shader);
+
+        glLinkProgram(program_id);
+
+        glDeleteShader(vertex_shader);
+        glDeleteShader(fragment_shader);
+
+        return program_id;
+    }
+
+    GLuint Scene::compile_screen_shaders()
+    {
+        const char* vertex_shader_code = R"(
+    #version 330 core
+    layout(location = 0) in vec2 position;
+    layout(location = 1) in vec2 tex_coords;
+
+    out vec2 uv;
+
+    void main()
+    {
+        uv = tex_coords;
+        gl_Position = vec4(position, 0.0, 1.0);
+    }
+    )";
+
+        const char* fragment_shader_code = R"(
+    #version 330 core
+    in vec2 uv;
+    out vec4 frag_color;
+
+    uniform sampler2D screen_texture;
+
+    void main()
+    {
+        frag_color = texture(screen_texture, uv);
     }
     )";
 

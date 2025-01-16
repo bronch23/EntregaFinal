@@ -13,6 +13,7 @@
 #include "SceneNode.hpp"
 #include "MeshNode.hpp"
 #include "CameraNode.hpp"
+#include "FrameBuffer.hpp"
 namespace udit
 {
     class Scene
@@ -39,11 +40,14 @@ namespace udit
         int    height;
         void on_click(int pointer_x, int pointer_y, bool down);
         void on_drag(int pointer_x, int pointer_y);
+        void initialize_screen_quad();
+
 
     private:
 
         std::vector<Mesh> meshes;
         GLuint program_id;
+        GLuint screen_shader_program;
         GLuint model_view_matrix_id;
         GLuint projection_matrix_id;
         GLuint normal_matrix_id;  // Se añade para las normales
@@ -52,6 +56,11 @@ namespace udit
         /*MeshNode::Mesh create_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path);*/
         GLuint create_texture_2d(const std::string& texture_path);
         GLuint compile_shaders();
+       
+        GLuint compile_screen_shaders();
+
+        Framebuffer framebuffer; // Framebuffer para renderizar la escena
+        GLuint screen_quad_vao;  // VAO para renderizar el framebuffer en pantalla
 
         Camera camera;
         std::shared_ptr<CameraNode> camera_node;
