@@ -8,66 +8,69 @@
 using udit::Scene;
 using udit::Window;
 
-int main (int , char * [])
+bool handle_events(Scene& scene)
 {
-    constexpr unsigned viewport_width  = 1024;
-    constexpr unsigned viewport_height =  576;
+    SDL_Event event;
+    while (SDL_PollEvent(&event))
+    {
+        if (event.type == SDL_QUIT)
+        {
+            return false; // Salir del programa
+        }
+        else if (event.type == SDL_MOUSEMOTION)
+        {
+            // Movimiento del ratón para controlar la cámara
+            scene.on_drag(event.motion.x, event.motion.y);
+        }
+        else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP)
+        {
+            // Click del ratón
+            scene.on_click(event.button.x, event.button.y, event.type == SDL_MOUSEBUTTONDOWN);
+        }
+    }
+    return true;
+}
 
-    Window window
-    (
-        "OpenGL example",
+// Función para actualizar la escena
+void update_scene(Scene& scene)
+{
+    scene.update();
+}
+
+// Función para renderizar la escena
+void render_scene(Scene& scene, Window& window)
+{
+    scene.render();
+    window.swap_buffers();
+}
+
+int main(int, char * [])
+{
+    constexpr unsigned viewport_width = 1024;
+    constexpr unsigned viewport_height = 576;
+
+    // Crear la ventana
+    Window window(
+        "OpenGL Scene",
         Window::Position::CENTERED,
         Window::Position::CENTERED,
         viewport_width,
-        viewport_height, 
-        { 3, 3 }
+        viewport_height,
+        { 3, 3 } // Versión de OpenGL
     );
+
+    // Crear la escena
     Scene scene(viewport_width, viewport_height);
-    bool exit = false;
-    
-    do
+
+    // Bucle principal
+    bool running = true;
+    while (running)
     {
-        // Se procesan los eventos acumulados:
-
-        SDL_Event event;
-
-        while (SDL_PollEvent (&event) > 0)
-        {
-            switch (event.type)
-            {
-            case SDL_MOUSEBUTTONDOWN:
-                scene.on_click(event.button.x, event.button.y, true);
-                break;
-
-            case SDL_MOUSEBUTTONUP:
-                scene.on_click(event.button.x, event.button.y, false);
-                break;
-
-            case SDL_MOUSEMOTION:
-                scene.on_drag(event.motion.x, event.motion.y);
-                break;
-
-            case SDL_QUIT:
-                exit = true;
-                break;
-            }
-        }
-
-        // Se actualiza la escena:
-
-        scene.update ();
-
-        // Se redibuja la escena:
-
-        scene.render ();
-
-        // Se actualiza el contenido de la ventana:
-
-        window.swap_buffers ();
+        running = handle_events(scene);
+        update_scene(scene);
+        render_scene(scene, window);
     }
-    while (not exit);
 
-    SDL_Quit ();
-
+    SDL_Quit();
     return 0;
 }

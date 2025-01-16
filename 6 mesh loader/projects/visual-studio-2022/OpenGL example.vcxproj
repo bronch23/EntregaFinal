@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\shared\code\Window.cpp" />
     <ClCompile Include="..\..\code\main.cpp" />
+    <ClCompile Include="..\..\code\MeshNode.cpp" />
     <ClCompile Include="..\..\code\Scene.cpp" />
     <ClCompile Include="..\..\code\Skybox.cpp" />
     <ClCompile Include="..\..\code\Texture_Cube.cpp" />
@@ -90,7 +91,9 @@
     <ClInclude Include="..\..\..\shared\code\Color_Buffer.hpp" />
     <ClInclude Include="..\..\..\shared\code\Window.hpp" />
     <ClInclude Include="..\..\code\Camera.hpp" />
+    <ClInclude Include="..\..\code\MeshNode.hpp" />
     <ClInclude Include="..\..\code\Scene.hpp" />
+    <ClInclude Include="..\..\code\SceneNode.hpp" />
     <ClInclude Include="..\..\code\Skybox.hpp" />
     <ClInclude Include="..\..\code\Texture_Cube.hpp" />
   </ItemGroup>

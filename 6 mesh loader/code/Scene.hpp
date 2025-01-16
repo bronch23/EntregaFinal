@@ -10,6 +10,8 @@
 #include <glad/glad.h>
 #include "Camera.hpp"
 #include "Skybox.hpp"
+#include "SceneNode.hpp"
+#include "MeshNode.hpp"
 namespace udit
 {
     class Scene
@@ -31,7 +33,7 @@ namespace udit
         void update();
         void render();
         void resize(int width, int height);
-
+        SceneNode::Ptr root_node;
         int    width;
         int    height;
         void on_click(int pointer_x, int pointer_y, bool down);
@@ -46,7 +48,7 @@ namespace udit
         GLuint normal_matrix_id;  // Se añade para las normales
         float angle;
 
-        void load_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path);
+        MeshNode::Mesh create_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path);
         GLuint create_texture_2d(const std::string& texture_path);
         GLuint compile_shaders();
 

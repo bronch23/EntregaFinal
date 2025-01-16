@@ -7,6 +7,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include "MeshNode.hpp"
 
 
 namespace udit
@@ -17,6 +18,8 @@ namespace udit
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+        root_node = std::make_shared<SceneNode>();
 
         program_id = compile_shaders();
         glUseProgram(program_id);
@@ -35,29 +38,33 @@ namespace udit
         glUniform3f(light_color, 1.0f, 1.0f, 1.0f);
         glUniform1f(ambient_intensity, 0.2f);
         glUniform1f(diffuse_intensity, 0.8f);
-        
 
-        // Cargar múltiples mallas
-        load_mesh("../../../shared/assets/Foxx.fbx",
+        auto mesh_node = std::make_shared<MeshNode>();
+        root_node->add_child(mesh_node);
+
+        // Cargar y asignar mallas al nodo
+        mesh_node->add_mesh(create_mesh("../../../shared/assets/Foxx.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-            "../../../shared/assets/Fox_BaseColor.png");
+            "../../../shared/assets/Fox_BaseColor.png"));
 
-        load_mesh("../../../shared/assets/Pig.fbx",
+        mesh_node->add_mesh(create_mesh("../../../shared/assets/Pig.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-300.f, -20.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-            "../../../shared/assets/Pig_BaseColor.png");
+            "../../../shared/assets/Pig_BaseColor.png"));
 
-        load_mesh("../../../shared/assets/Wolf.fbx",
+        mesh_node->add_mesh(create_mesh("../../../shared/assets/Wolf.fbx",
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -150.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-            "../../../shared/assets/Wolf_BaseColor.png");
-
+            "../../../shared/assets/Wolf_BaseColor.png"));
 
         angle_around_x = angle_delta_x = 0.0;
         angle_around_y = angle_delta_y = 0.0;
         pointer_pressed = false;
     }
+
+
+
 
     Scene::~Scene()
     {
@@ -69,16 +76,17 @@ namespace udit
         }
     }
 
-    void Scene::load_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path)
+    MeshNode::Mesh Scene::create_mesh(const std::string& mesh_file_path, const glm::mat4& model_matrix, const std::string& texture_path)
     {
+        MeshNode::Mesh mesh;
+        mesh.model_matrix = model_matrix;
+
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(mesh_file_path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
         if (scene && scene->mNumMeshes > 0)
         {
             const aiMesh* ai_mesh = scene->mMeshes[0];
-            Mesh mesh;
-            mesh.model_matrix = model_matrix;
 
             glGenBuffers(4, mesh.vbo_ids);
             glGenVertexArrays(1, &mesh.vao_id);
@@ -117,19 +125,22 @@ namespace udit
                 const aiFace& face = ai_mesh->mFaces[i];
                 indices.insert(indices.end(), face.mIndices, face.mIndices + face.mNumIndices);
             }
-            mesh.number_of_indices = indices.size();
+            mesh.number_of_indices = static_cast<GLsizei>(indices.size());
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.vbo_ids[3]);
             glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLushort), indices.data(), GL_STATIC_DRAW);
 
             // Cargar textura
             mesh.texture_id = create_texture_2d(texture_path);
-            meshes.push_back(mesh);
         }
         else
         {
             std::cerr << "Failed to load mesh: " << mesh_file_path << std::endl;
         }
+
+        return mesh;
     }
+
+
 
 
     GLuint Scene::create_texture_2d(const std::string& texture_path)
@@ -151,6 +162,7 @@ namespace udit
 
     void Scene::update()
     {
+        // Lógica existente para la cámara
         angle += 0.01f;
         angle_around_x += angle_delta_x;
         angle_around_y += angle_delta_y;
@@ -159,19 +171,20 @@ namespace udit
         {
             angle_around_x = -1.5;
         }
-        else
-            if (angle_around_x > +1.5)
-            {
-                angle_around_x = +1.5;
-            }
+        else if (angle_around_x > +1.5)
+        {
+            angle_around_x = +1.5;
+        }
 
         glm::mat4 camera_rotation(1);
-
         camera_rotation = glm::rotate(camera_rotation, angle_around_y, glm::vec3(0.f, 1.f, 0.f));
         camera_rotation = glm::rotate(camera_rotation, angle_around_x, glm::vec3(1.f, 0.f, 0.f));
 
         camera.set_target(0, 0, -1);
         camera.rotate(camera_rotation);
+
+        // Actualización del nodo raíz
+        root_node->update();
     }
 
     void Scene::render()
@@ -181,45 +194,24 @@ namespace udit
         // Renderizar el skybox
         skybox.render(camera);
 
-        // Usar la cámara para obtener las matrices
+        // Obtener las matrices de la cámara
         glm::mat4 view_matrix = camera.get_transform_matrix_inverse();
         glm::mat4 projection_matrix = camera.get_projection_matrix();
 
-        // Configurar las matrices en el shader
+        // Activar el programa de shaders
         glUseProgram(program_id);
+
+        // Configurar la matriz de proyección en el shader
         glUniformMatrix4fv(projection_matrix_id, 1, GL_FALSE, glm::value_ptr(projection_matrix));
 
-        int mesh_index = 0; // Para identificar el modelo específico
-        for (const auto& mesh : meshes)
-        {
-            glm::mat4 model_matrix = mesh.model_matrix;
+        // Dibujar el grafo de escena
+        root_node->draw(view_matrix, projection_matrix, program_id);
 
-            // Rotar uno de los modelos
-            if (mesh_index == 0) // Cambia 0 al índice del modelo que quieras rotar
-            {
-                model_matrix = glm::rotate(
-                    model_matrix,
-                    angle, // `angle` se incrementa en `Scene::update`
-                    glm::vec3(0.f, 0.f, 1.f) // Eje de rotación (y-axis)
-                );
-            }
-
-            glm::mat4 model_view_matrix = view_matrix * model_matrix;
-            glm::mat4 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
-
-            glUniformMatrix4fv(model_view_matrix_id, 1, GL_FALSE, glm::value_ptr(model_view_matrix));
-            glUniformMatrix4fv(normal_matrix_id, 1, GL_FALSE, glm::value_ptr(normal_matrix));
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mesh.texture_id);
-            glUniform1i(glGetUniformLocation(program_id, "texture_sampler"), 0);
-
-            glBindVertexArray(mesh.vao_id);
-            glDrawElements(GL_TRIANGLES, mesh.number_of_indices, GL_UNSIGNED_SHORT, 0);
-
-            mesh_index++;
-        }
+        // Desactivar el programa de shaders
+        glUseProgram(0);
     }
+
+
 
     void Scene::resize(int new_width, int new_height)
     {
