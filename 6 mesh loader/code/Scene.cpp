@@ -303,7 +303,12 @@ namespace udit
 
     void main()
     {
-        frag_color = texture(screen_texture, uv);
+        vec3 color = texture(screen_texture, uv).rgb;
+
+        color.r += 0.3; // Incrementa más el canal rojo
+        color.g += 0.2; // Incrementa más el verde (para tonos amarillos)
+        color.b *= 0.7; // Reduce ligeramente el azul para acentuar el cálido
+        frag_color = vec4(color, 1.0);
     }
     )";
 
