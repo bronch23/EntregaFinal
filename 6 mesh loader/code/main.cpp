@@ -62,8 +62,7 @@ int main(int, char * [])
 
     //scene.load_scene("scene_data.json");
 
-    //Guardar Escena
-    //scene.save_scene("../../../shared/assets/scene_data.json");
+
 
     // Bucle principal
     bool running = true;
@@ -73,7 +72,8 @@ int main(int, char * [])
         update_scene(scene);
         render_scene(scene, window);
     }
-
+    //Guardar Escena
+    scene.save_scene("../../../shared/assets/scene_data.json");
     SDL_Quit();
     return 0;
 }
