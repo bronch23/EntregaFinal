@@ -1,6 +1,7 @@
-
-// Este código es de dominio público
-// angel.rodriguez@udit.es
+// Proyecto: Entrega Programación Gráfica UDIT 2024/25
+// Autor: Jorge L Broncano Luque
+// Licencia: Uso libre (2025)
+// Descripción: Implementación de conceptos básicos de programación de gráficos
 
 #ifndef TEXTURE_CUBE_HEADER
 #define TEXTURE_CUBE_HEADER

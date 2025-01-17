@@ -1,3 +1,7 @@
+// Proyecto: Entrega Programación Gráfica UDIT 2024/25
+// Autor: Jorge L Broncano Luque
+// Licencia: Uso libre (2025)
+// Descripción: Implementación de conceptos básicos de programación de gráficos
 #include "ElevationNode.hpp"
 #include <SOIL2.h>
 #include <iostream>

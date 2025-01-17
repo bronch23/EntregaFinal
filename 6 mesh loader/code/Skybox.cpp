@@ -1,7 +1,7 @@
-
-// Este código es de dominio público.
-// angel.rodriguez@esne.edu
-// 2014.03+
+// Proyecto: Entrega Programación Gráfica UDIT 2024/25
+// Autor: Jorge L Broncano Luque
+// Licencia: Uso libre (2025)
+// Descripción: Implementación de conceptos básicos de programación de gráficos
 
 #include <cassert>
 #include <iostream>

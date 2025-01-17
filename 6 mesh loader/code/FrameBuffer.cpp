@@ -1,3 +1,7 @@
+// Proyecto: Entrega Programación Gráfica UDIT 2024/25
+// Autor: Jorge L Broncano Luque
+// Licencia: Uso libre (2025)
+// Descripción: Implementación de conceptos básicos de programación de gráficos
 #include "Framebuffer.hpp"
 #include <iostream>
 
