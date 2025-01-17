@@ -37,6 +37,7 @@ namespace udit
         Scene(int width, int height);
         ~Scene();
 
+        void initialize_default_scene();
         void update();
         void render();
         void resize(int width, int height);
@@ -47,6 +48,13 @@ namespace udit
         void on_drag(int pointer_x, int pointer_y);
         void initialize_screen_quad();
         void save_scene(const std::string& file_path);
+        void load_scene(const std::string& file_path);
+        void load_camera(const json& camera_data);
+        void load_meshes(const json& meshes_data);
+        void load_elevation(const json& elevation_data);
+        void load_lights(const json& lights_data);
+        void load_skybox(const json& skybox_data);
+        void load_postprocessing(const json& postprocessing_data);
         std::shared_ptr<MeshNode> mesh_node; 
         std::shared_ptr<ElevationMeshNode> elevation_node;
         std::shared_ptr<LightNode> light_node;
@@ -67,6 +75,8 @@ namespace udit
         GLuint compile_shaders();
        
         GLuint compile_screen_shaders();
+        float postprocess_effect_intensity = 0.5f;
+        glm::vec3 postprocess_color_adjustment = { 1.2f, 1.0f, 0.8f };
 
         Framebuffer framebuffer; // Framebuffer para renderizar la escena
         GLuint screen_quad_vao;  // VAO para renderizar el framebuffer en pantalla

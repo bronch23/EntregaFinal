@@ -58,6 +58,11 @@ public:
         camera.move(delta);
     }
 
+    void set_fov(float new_fov) 
+    { 
+        camera.set_fov(new_fov);
+    }
+
     glm::vec3 get_position() const
     {
         return camera.get_location();

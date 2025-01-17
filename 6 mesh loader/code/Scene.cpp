@@ -39,8 +39,6 @@ namespace udit
 
         resize(width, height);
 
-
-
         camera_node = std::make_shared<CameraNode>(float(width) / height);
         root_node->add_child(camera_node);
 
@@ -50,37 +48,181 @@ namespace udit
         light_node = std::make_shared<LightNode>(program_id);
         root_node->add_child(light_node);
 
-        mesh_node = std::make_shared<MeshNode>(); 
-        root_node->add_child(mesh_node);        
-
-        // Cargar y asignar mallas al nodo
-        mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Foxx.fbx",
-            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(0.f, -20.f, -255.f)),
-                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-            "../../../shared/assets/Fox_BaseColor.png"));
-        mesh_node->meshes.back().rotate_y = true; // Activa rotación para esta malla
-        mesh_node->meshes.back().rotation_speed = 1.f; // Ajusta velocidad de rotación
-        // Establecer transparencia para el último mesh
-        mesh_node->set_mesh_transparency(mesh_node->meshes.size() - 1, 0.9f);
-
-        mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Pig.fbx",
-            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(-300.f, -20.f, -400.f)),
-                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-            "../../../shared/assets/Pig_BaseColor.png"));
-
-        mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Wolf.fbx",
-            glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -150.f, -400.f)),
-                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-            "../../../shared/assets/Wolf_BaseColor.png"));
+        mesh_node = std::make_shared<MeshNode>();
+        root_node->add_child(mesh_node);
 
         elevation_node = std::make_shared<ElevationMeshNode>("../../../shared/assets/height-map.png", 100.0f);
-        elevation_node->set_position(glm::vec3(300.0f, -100.f, -400.0f));
-        elevation_node->load_texture("../../../shared/assets/uv-checker.png");
         root_node->add_child(elevation_node);
+
+        initialize_default_scene();
+
+
+        //load_scene("../../../shared/assets/scene_data.json");
+
 
         angle_around_x = angle_delta_x = 0.0;
         angle_around_y = angle_delta_y = 0.0;
         pointer_pressed = false;
+
+        
+    }
+
+    void Scene::initialize_default_scene()
+    {
+        // Leer el archivo JSON
+        std::ifstream file("../../../shared/assets/scene_data.json");
+        json scene_data;
+
+        if (file.is_open())
+        {
+            file >> scene_data;
+        }
+        else
+        {
+            std::cerr << "Advertencia: No se pudo abrir el archivo scene_data.json, se usarán valores predeterminados." << std::endl;
+        }
+
+        // Malla 1: Fox
+        std::string fox_model_path = "../../../shared/assets/Foxx.fbx";
+        std::string fox_texture_path = "../../../shared/assets/Fox_BaseColor.png";
+        glm::vec3 fox_position = glm::vec3(0.f, -20.f, -255.f);
+        float fox_rotation_speed = 1.0f;
+        float fox_transparency = 0.9f;
+
+        // Sobrescribir valores desde el JSON si están presentes
+        if (scene_data.contains("meshes") && scene_data["meshes"].size() > 0)
+        {
+            const auto& fox_data = scene_data["meshes"][0];
+            if (fox_data.contains("model_path")) fox_model_path = fox_data["model_path"];
+            if (fox_data.contains("texture_path")) fox_texture_path = fox_data["texture_path"];
+            if (fox_data.contains("position"))
+            {
+                fox_position = glm::vec3(
+                    fox_data["position"][0],
+                    fox_data["position"][1],
+                    fox_data["position"][2]
+                );
+            }
+            if (fox_data.contains("rotation_speed")) fox_rotation_speed = fox_data["rotation_speed"];
+            if (fox_data.contains("transparency")) fox_transparency = fox_data["transparency"];
+        }
+
+        mesh_node->add_mesh(MeshLoader::load_mesh(fox_model_path,
+            glm::rotate(glm::translate(glm::mat4(1.0f), fox_position),
+                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
+            fox_texture_path));
+        mesh_node->meshes.back().rotate_y = true;
+        mesh_node->meshes.back().rotation_speed = fox_rotation_speed;
+        mesh_node->set_mesh_transparency(mesh_node->meshes.size() - 1, fox_transparency);
+
+        // Malla 2: Pig
+        std::string pig_model_path = "../../../shared/assets/Pig.fbx";
+        std::string pig_texture_path = "../../../shared/assets/Pig_BaseColor.png";
+        glm::vec3 pig_position = glm::vec3(-300.f, -20.f, -400.f);
+
+        if (scene_data.contains("meshes") && scene_data["meshes"].size() > 1)
+        {
+            const auto& pig_data = scene_data["meshes"][1];
+            if (pig_data.contains("model_path")) pig_model_path = pig_data["model_path"];
+            if (pig_data.contains("texture_path")) pig_texture_path = pig_data["texture_path"];
+            if (pig_data.contains("position"))
+            {
+                pig_position = glm::vec3(
+                    pig_data["position"][0],
+                    pig_data["position"][1],
+                    pig_data["position"][2]
+                );
+            }
+        }
+
+        mesh_node->add_mesh(MeshLoader::load_mesh(pig_model_path,
+            glm::rotate(glm::translate(glm::mat4(1.0f), pig_position),
+                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
+            pig_texture_path));
+
+        // Malla 3: Wolf
+        std::string wolf_model_path = "../../../shared/assets/Wolf.fbx";
+        std::string wolf_texture_path = "../../../shared/assets/Wolf_BaseColor.png";
+        glm::vec3 wolf_position = glm::vec3(300.f, -150.f, -400.f);
+
+        if (scene_data.contains("meshes") && scene_data["meshes"].size() > 2)
+        {
+            const auto& wolf_data = scene_data["meshes"][2];
+            if (wolf_data.contains("model_path")) wolf_model_path = wolf_data["model_path"];
+            if (wolf_data.contains("texture_path")) wolf_texture_path = wolf_data["texture_path"];
+            if (wolf_data.contains("position"))
+            {
+                wolf_position = glm::vec3(
+                    wolf_data["position"][0],
+                    wolf_data["position"][1],
+                    wolf_data["position"][2]
+                );
+            }
+        }
+
+        mesh_node->add_mesh(MeshLoader::load_mesh(wolf_model_path,
+            glm::rotate(glm::translate(glm::mat4(1.0f), wolf_position),
+                glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
+            wolf_texture_path));
+
+        // Nodo de elevación
+        glm::vec3 elevation_position = glm::vec3(300.0f, -100.f, -400.0f);
+        std::string elevation_texture_path = "../../../shared/assets/uv-checker.png";
+
+        if (scene_data.contains("elevation"))
+        {
+            const auto& elevation_data = scene_data["elevation"];
+            if (elevation_data.contains("position"))
+            {
+                elevation_position = glm::vec3(
+                    elevation_data["position"][0],
+                    elevation_data["position"][1],
+                    elevation_data["position"][2]
+                );
+            }
+            if (elevation_data.contains("heightmap"))
+            {
+                elevation_texture_path = elevation_data["heightmap"];
+            }
+        }
+
+        elevation_node->set_position(elevation_position);
+        elevation_node->load_texture(elevation_texture_path);
+
+        for (const auto& light_data : scene_data["lights"])
+        {
+            glm::vec3 position = {
+                light_data["position"][0],
+                light_data["position"][1],
+                light_data["position"][2]
+            };
+            glm::vec3 color = {
+                light_data["color"][0],
+                light_data["color"][1],
+                light_data["color"][2]
+            };
+            float ambient_intensity = light_data["ambient_intensity"];
+            float diffuse_intensity = light_data["diffuse_intensity"];
+
+            light_node->set_position(position);
+            light_node->set_color(color);
+            light_node->set_ambient_intensity(ambient_intensity);
+            light_node->set_diffuse_intensity(diffuse_intensity);
+        }
+
+        if (scene_data["postprocessing"].contains("effect_intensity"))
+        {
+            postprocess_effect_intensity = scene_data["postprocessing"]["effect_intensity"];
+        }
+
+        if (scene_data["postprocessing"].contains("color_adjustment"))
+        {
+            postprocess_color_adjustment = {
+                scene_data["postprocessing"]["color_adjustment"][0],
+                scene_data["postprocessing"]["color_adjustment"][1],
+                scene_data["postprocessing"]["color_adjustment"][2]
+            };
+        }
     }
 
 
@@ -152,6 +294,13 @@ namespace udit
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(screen_shader_program);
 
+        GLuint effect_intensity_loc = glGetUniformLocation(screen_shader_program, "effect_intensity");
+        GLuint color_adjustment_loc = glGetUniformLocation(screen_shader_program, "color_adjustment");
+
+        // Asignar valores dinámicos
+        glUniform1f(effect_intensity_loc, postprocess_effect_intensity);
+        glUniform3fv(color_adjustment_loc, 1, glm::value_ptr(postprocess_color_adjustment));
+
         glBindVertexArray(screen_quad_vao);
         glBindTexture(GL_TEXTURE_2D, framebuffer.get_texture());
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -159,6 +308,7 @@ namespace udit
         glBindVertexArray(0);
         glUseProgram(0);
     }
+
 
 
 
@@ -309,14 +459,18 @@ namespace udit
     out vec4 frag_color;
 
     uniform sampler2D screen_texture;
+    uniform float effect_intensity;
+    uniform vec3 color_adjustment;
 
     void main()
     {
         vec3 color = texture(screen_texture, uv).rgb;
 
-        color.r += 0.3; // Incrementa más el canal rojo
-        color.g += 0.2; // Incrementa más el verde (para tonos amarillos)
-        color.b *= 0.7; // Reduce ligeramente el azul para acentuar el cálido
+        // Ajuste de color basado en los parámetros dinámicos
+        color.r += effect_intensity * color_adjustment.r;
+        color.g += effect_intensity * color_adjustment.g;
+        color.b *= effect_intensity * color_adjustment.b;
+
         frag_color = vec4(color, 1.0);
     }
     )";
@@ -341,6 +495,7 @@ namespace udit
 
         return program_id;
     }
+
 
     void Scene::save_scene(const std::string& file_path)
     {
@@ -405,42 +560,13 @@ namespace udit
         }
 
         scene_data["postprocessing"] = {
-            {"vertex_shader", R"(
-            #version 330 core
-            layout(location = 0) in vec2 position;
-            layout(location = 1) in vec2 tex_coords;
-
-            out vec2 uv;
-
-            void main()
-            {
-                uv = tex_coords;
-                gl_Position = vec4(position, 0.0, 1.0);
-            }
-             )"},
-            {"fragment_shader", R"(
-            #version 330 core
-            in vec2 uv;
-            out vec4 frag_color;
-
-            uniform sampler2D screen_texture;
-
-            void main()
-            {
-                vec3 color = texture(screen_texture, uv).rgb;
-
-                color.r += 0.3;
-                color.g += 0.2;
-                color.b *= 0.7;
-                frag_color = vec4(color, 1.0);
-            }
-            )"},
-            {"parameters", {
-            {"effect_intensity", 0.5},
-            {"color_adjustment", {1.2, 1.0, 0.8}}
-            }},
-            {"framebuffer_size", {width, height}}
-            };
+                {"effect_intensity", postprocess_effect_intensity},
+                {"color_adjustment", {
+                postprocess_color_adjustment.r,
+                postprocess_color_adjustment.g,
+                postprocess_color_adjustment.b
+                }}
+        };
 
         // Escribir el JSON en un archivo
         std::ofstream file(file_path);
@@ -456,7 +582,129 @@ namespace udit
         }
     }
 
+    void Scene::load_scene(const std::string& file_path)
+    {
+        std::ifstream file(file_path);
 
+        json scene_data;
+        file >> scene_data;
+
+        // Llamar a métodos para reconstruir cada parte de la escena
+        load_camera(scene_data["camera"]);
+        load_meshes(scene_data["meshes"]);
+        load_elevation(scene_data["elevation"]);
+        load_lights(scene_data["lights"]);
+        load_skybox(scene_data["skybox"]);
+        load_postprocessing(scene_data["postprocessing"]);
+
+        std::cout << "Escena cargada desde " << file_path << std::endl;
+    }
+
+    void Scene::load_camera(const json& camera_data)
+    {
+        glm::vec3 position = {
+            camera_data["position"][0],
+            camera_data["position"][1],
+            camera_data["position"][2]
+        };
+        glm::vec3 rotation = {
+            camera_data["rotation"][0],
+            camera_data["rotation"][1],
+            camera_data["rotation"][2]
+        };
+        float aspect_ratio = camera_data["aspect_ratio"];
+        float fov = camera_data["fov"];
+
+        camera_node->set_position(position.x, position.y, position.z);
+        camera_node->set_ratio(aspect_ratio);
+        camera_node->set_fov(fov);
+    }
+
+    void Scene::load_meshes(const json& meshes_data)
+    {
+        for (const auto& mesh_data : meshes_data)
+        {
+            std::string model_path = mesh_data["model_path"];
+            std::string texture_path = mesh_data["texture_path"];
+            glm::vec3 position = {
+                mesh_data["position"][0],
+                mesh_data["position"][1],
+                mesh_data["position"][2]
+            };
+
+            auto mesh = MeshLoader::load_mesh(
+                model_path,
+                glm::rotate(glm::translate(glm::mat4(1.0f), position),
+                    glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
+                texture_path
+            );
+
+            mesh_node->add_mesh(mesh);
+        }
+    }
+
+    void Scene::load_elevation(const json& elevation_data)
+    {
+        std::string heightmap = elevation_data["heightmap"];
+        glm::vec3 position = {
+            elevation_data["position"][0],
+            elevation_data["position"][1],
+            elevation_data["position"][2]
+        };
+        float scale = elevation_data["scale"];
+
+        elevation_node = std::make_shared<ElevationMeshNode>(heightmap, scale);
+        elevation_node->set_position(position);
+        root_node->add_child(elevation_node);
+    }
+
+    void Scene::load_lights(const json& lights_data)
+    {
+        for (const auto& light_data : lights_data)
+        {
+            glm::vec3 position = {
+                light_data["position"][0],
+                light_data["position"][1],
+                light_data["position"][2]
+            };
+            glm::vec3 color = {
+                light_data["color"][0],
+                light_data["color"][1],
+                light_data["color"][2]
+            };
+            float ambient_intensity = light_data["ambient_intensity"];
+            float diffuse_intensity = light_data["diffuse_intensity"];
+
+            light_node->set_position(position);
+            light_node->set_color(color);
+            light_node->set_ambient_intensity(ambient_intensity);
+            light_node->set_diffuse_intensity(diffuse_intensity);
+        }
+    }
+
+    void Scene::load_skybox(const json& skybox_data)
+    {
+        std::string texture_base_path = skybox_data["texture_base_path"];
+        skybox_node = std::make_shared<SkyboxNode>(texture_base_path, camera_node);
+        root_node->add_child(skybox_node);
+    }
+
+    void Scene::load_postprocessing(const json& postprocessing_data)
+    {
+        if (postprocessing_data.contains("effect_intensity"))
+        {
+            postprocess_effect_intensity = postprocessing_data["effect_intensity"];
+        }
+
+        if (postprocessing_data.contains("color_adjustment"))
+        {
+            postprocess_color_adjustment = {
+                postprocessing_data["color_adjustment"][0],
+                postprocessing_data["color_adjustment"][1],
+                postprocessing_data["color_adjustment"][2]
+            };
+        }
+    }
 }
 
 
