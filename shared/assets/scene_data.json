@@ -76,11 +76,11 @@
     ],
     "postprocessing": {
         "color_adjustment": [
-            1.2000000476837158,
             1.0,
-            0.800000011920929
+            1.0,
+            1.0
         ],
-        "effect_intensity": 0.5
+        "effect_intensity": 0.0
     },
     "skybox": {
         "texture_base_path": "../../../shared/assets/cubemap-"
