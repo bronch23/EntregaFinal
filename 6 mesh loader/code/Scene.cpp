@@ -534,7 +534,7 @@ namespace udit
             };
         }
 
-        if (light_node) // Asegúrate de que el nodo de luz existe
+        if (light_node) 
         {
             glm::vec3 position = light_node->get_position();
             glm::vec3 color = light_node->get_color();
@@ -550,7 +550,7 @@ namespace udit
                 });
         }
 
-        if (skybox_node) // Verificar que el skybox existe
+        if (skybox_node) 
         {
             std::string texture_base_path = skybox_node->get_texture_base_path();
 
@@ -572,7 +572,7 @@ namespace udit
         std::ofstream file(file_path);
         if (file.is_open())
         {
-            file << scene_data.dump(4); // Guardar con formato legible (indentación 4)
+            file << scene_data.dump(4); 
             file.close();
             std::cout << "Escena guardada en " << file_path << std::endl;
         }
@@ -582,129 +582,129 @@ namespace udit
         }
     }
 
-    void Scene::load_scene(const std::string& file_path)
-    {
-        std::ifstream file(file_path);
-
-        json scene_data;
-        file >> scene_data;
-
-        // Llamar a métodos para reconstruir cada parte de la escena
-        load_camera(scene_data["camera"]);
-        load_meshes(scene_data["meshes"]);
-        load_elevation(scene_data["elevation"]);
-        load_lights(scene_data["lights"]);
-        load_skybox(scene_data["skybox"]);
-        load_postprocessing(scene_data["postprocessing"]);
-
-        std::cout << "Escena cargada desde " << file_path << std::endl;
-    }
-
-    void Scene::load_camera(const json& camera_data)
-    {
-        glm::vec3 position = {
-            camera_data["position"][0],
-            camera_data["position"][1],
-            camera_data["position"][2]
-        };
-        glm::vec3 rotation = {
-            camera_data["rotation"][0],
-            camera_data["rotation"][1],
-            camera_data["rotation"][2]
-        };
-        float aspect_ratio = camera_data["aspect_ratio"];
-        float fov = camera_data["fov"];
-
-        camera_node->set_position(position.x, position.y, position.z);
-        camera_node->set_ratio(aspect_ratio);
-        camera_node->set_fov(fov);
-    }
-
-    void Scene::load_meshes(const json& meshes_data)
-    {
-        for (const auto& mesh_data : meshes_data)
-        {
-            std::string model_path = mesh_data["model_path"];
-            std::string texture_path = mesh_data["texture_path"];
-            glm::vec3 position = {
-                mesh_data["position"][0],
-                mesh_data["position"][1],
-                mesh_data["position"][2]
-            };
-
-            auto mesh = MeshLoader::load_mesh(
-                model_path,
-                glm::rotate(glm::translate(glm::mat4(1.0f), position),
-                    glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
-                texture_path
-            );
-
-            mesh_node->add_mesh(mesh);
-        }
-    }
-
-    void Scene::load_elevation(const json& elevation_data)
-    {
-        std::string heightmap = elevation_data["heightmap"];
-        glm::vec3 position = {
-            elevation_data["position"][0],
-            elevation_data["position"][1],
-            elevation_data["position"][2]
-        };
-        float scale = elevation_data["scale"];
-
-        elevation_node = std::make_shared<ElevationMeshNode>(heightmap, scale);
-        elevation_node->set_position(position);
-        root_node->add_child(elevation_node);
-    }
-
-    void Scene::load_lights(const json& lights_data)
-    {
-        for (const auto& light_data : lights_data)
-        {
-            glm::vec3 position = {
-                light_data["position"][0],
-                light_data["position"][1],
-                light_data["position"][2]
-            };
-            glm::vec3 color = {
-                light_data["color"][0],
-                light_data["color"][1],
-                light_data["color"][2]
-            };
-            float ambient_intensity = light_data["ambient_intensity"];
-            float diffuse_intensity = light_data["diffuse_intensity"];
-
-            light_node->set_position(position);
-            light_node->set_color(color);
-            light_node->set_ambient_intensity(ambient_intensity);
-            light_node->set_diffuse_intensity(diffuse_intensity);
-        }
-    }
-
-    void Scene::load_skybox(const json& skybox_data)
-    {
-        std::string texture_base_path = skybox_data["texture_base_path"];
-        skybox_node = std::make_shared<SkyboxNode>(texture_base_path, camera_node);
-        root_node->add_child(skybox_node);
-    }
-
-    void Scene::load_postprocessing(const json& postprocessing_data)
-    {
-        if (postprocessing_data.contains("effect_intensity"))
-        {
-            postprocess_effect_intensity = postprocessing_data["effect_intensity"];
-        }
-
-        if (postprocessing_data.contains("color_adjustment"))
-        {
-            postprocess_color_adjustment = {
-                postprocessing_data["color_adjustment"][0],
-                postprocessing_data["color_adjustment"][1],
-                postprocessing_data["color_adjustment"][2]
-            };
-        }
-    }
+//    void Scene::load_scene(const std::string& file_path)
+//    {
+//        std::ifstream file(file_path);
+//
+//        json scene_data;
+//        file >> scene_data;
+//
+//        // Llamar a métodos para reconstruir cada parte de la escena
+//        load_camera(scene_data["camera"]);
+//        load_meshes(scene_data["meshes"]);
+//        load_elevation(scene_data["elevation"]);
+//        load_lights(scene_data["lights"]);
+//        load_skybox(scene_data["skybox"]);
+//        load_postprocessing(scene_data["postprocessing"]);
+//
+//        std::cout << "Escena cargada desde " << file_path << std::endl;
+//    }
+//
+//    void Scene::load_camera(const json& camera_data)
+//    {
+//        glm::vec3 position = {
+//            camera_data["position"][0],
+//            camera_data["position"][1],
+//            camera_data["position"][2]
+//        };
+//        glm::vec3 rotation = {
+//            camera_data["rotation"][0],
+//            camera_data["rotation"][1],
+//            camera_data["rotation"][2]
+//        };
+//        float aspect_ratio = camera_data["aspect_ratio"];
+//        float fov = camera_data["fov"];
+//
+//        camera_node->set_position(position.x, position.y, position.z);
+//        camera_node->set_ratio(aspect_ratio);
+//        camera_node->set_fov(fov);
+//    }
+//
+//    void Scene::load_meshes(const json& meshes_data)
+//    {
+//        for (const auto& mesh_data : meshes_data)
+//        {
+//            std::string model_path = mesh_data["model_path"];
+//            std::string texture_path = mesh_data["texture_path"];
+//            glm::vec3 position = {
+//                mesh_data["position"][0],
+//                mesh_data["position"][1],
+//                mesh_data["position"][2]
+//            };
+//
+//            auto mesh = MeshLoader::load_mesh(
+//                model_path,
+//                glm::rotate(glm::translate(glm::mat4(1.0f), position),
+//                    glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
+//                texture_path
+//            );
+//
+//            mesh_node->add_mesh(mesh);
+//        }
+//    }
+//
+//    void Scene::load_elevation(const json& elevation_data)
+//    {
+//        std::string heightmap = elevation_data["heightmap"];
+//        glm::vec3 position = {
+//            elevation_data["position"][0],
+//            elevation_data["position"][1],
+//            elevation_data["position"][2]
+//        };
+//        float scale = elevation_data["scale"];
+//
+//        elevation_node = std::make_shared<ElevationMeshNode>(heightmap, scale);
+//        elevation_node->set_position(position);
+//        root_node->add_child(elevation_node);
+//    }
+//
+//    void Scene::load_lights(const json& lights_data)
+//    {
+//        for (const auto& light_data : lights_data)
+//        {
+//            glm::vec3 position = {
+//                light_data["position"][0],
+//                light_data["position"][1],
+//                light_data["position"][2]
+//            };
+//            glm::vec3 color = {
+//                light_data["color"][0],
+//                light_data["color"][1],
+//                light_data["color"][2]
+//            };
+//            float ambient_intensity = light_data["ambient_intensity"];
+//            float diffuse_intensity = light_data["diffuse_intensity"];
+//
+//            light_node->set_position(position);
+//            light_node->set_color(color);
+//            light_node->set_ambient_intensity(ambient_intensity);
+//            light_node->set_diffuse_intensity(diffuse_intensity);
+//        }
+//    }
+//
+//    void Scene::load_skybox(const json& skybox_data)
+//    {
+//        std::string texture_base_path = skybox_data["texture_base_path"];
+//        skybox_node = std::make_shared<SkyboxNode>(texture_base_path, camera_node);
+//        root_node->add_child(skybox_node);
+//    }
+//
+//    void Scene::load_postprocessing(const json& postprocessing_data)
+//    {
+//        if (postprocessing_data.contains("effect_intensity"))
+//        {
+//            postprocess_effect_intensity = postprocessing_data["effect_intensity"];
+//        }
+//
+//        if (postprocessing_data.contains("color_adjustment"))
+//        {
+//            postprocess_color_adjustment = {
+//                postprocessing_data["color_adjustment"][0],
+//                postprocessing_data["color_adjustment"][1],
+//                postprocessing_data["color_adjustment"][2]
+//            };
+//        }
+//    }
 }
 
 

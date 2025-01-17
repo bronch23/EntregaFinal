@@ -48,13 +48,13 @@ namespace udit
         void on_drag(int pointer_x, int pointer_y);
         void initialize_screen_quad();
         void save_scene(const std::string& file_path);
-        void load_scene(const std::string& file_path);
+        /*void load_scene(const std::string& file_path);
         void load_camera(const json& camera_data);
         void load_meshes(const json& meshes_data);
         void load_elevation(const json& elevation_data);
         void load_lights(const json& lights_data);
         void load_skybox(const json& skybox_data);
-        void load_postprocessing(const json& postprocessing_data);
+        void load_postprocessing(const json& postprocessing_data);*/
         std::shared_ptr<MeshNode> mesh_node; 
         std::shared_ptr<ElevationMeshNode> elevation_node;
         std::shared_ptr<LightNode> light_node;
