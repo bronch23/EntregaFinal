@@ -16,7 +16,8 @@ namespace udit
         std::vector<GLuint> indices;
         GLuint texture_id;
         GLuint shader_program;
-
+        glm::vec3 position;
+        std::vector<glm::vec2> uvs;
         void generate_mesh(const std::string& heightmap_path, float max_height);
         void calculate_normals();
 
@@ -25,7 +26,9 @@ namespace udit
         ~ElevationMeshNode();
         void set_position(const glm::vec3& position);
         void load_texture(const std::string& texture_path);
-        std::vector<glm::vec2> uvs;
+        
         void draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, GLuint program_id) override;
+        glm::vec3 get_position() const;
+        
     };
 }

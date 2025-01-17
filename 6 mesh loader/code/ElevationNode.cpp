@@ -42,17 +42,24 @@ namespace udit
         glDeleteBuffers(1, &ebo);
         glDeleteVertexArrays(1, &vao);
     }
-    void ElevationMeshNode::set_position(const glm::vec3& position)
+    void ElevationMeshNode::set_position(const glm::vec3& newPosition)
     {
+        position = newPosition;
+
         for (auto& vertex : vertices)
         {
-            vertex += position; // Desplazar todos los vértices
+            vertex += newPosition; // Desplazar todos los vértices
         }
-
         // Actualizar el buffer de posiciones
         glBindBuffer(GL_ARRAY_BUFFER, vbo_positions);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), vertices.data(), GL_STATIC_DRAW);
     }
+
+    glm::vec3 ElevationMeshNode::get_position() const
+    {
+        return position;
+    }
+    
     void ElevationMeshNode::generate_mesh(const std::string& heightmap_path, float max_height)
     {
         int width, height, channels;

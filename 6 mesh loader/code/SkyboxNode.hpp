@@ -25,6 +25,11 @@ namespace udit
                 skybox.render(skybox_view_matrix, projection_matrix);
             }
         }
+
+        std::string get_texture_base_path() const
+        {
+            return skybox.get_texture_base_path();
+        }
     };
 }
 

@@ -278,4 +278,8 @@ namespace udit
         assert(false);
     }
 
+    std::string Skybox::get_texture_base_path() const
+    {
+        return texture_cube.get_base_path(); 
+    }
 }

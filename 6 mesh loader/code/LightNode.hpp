@@ -21,12 +21,6 @@ namespace udit
             GLint ambient_intensity_loc = glGetUniformLocation(program_id, "ambient_intensity");
             GLint diffuse_intensity_loc = glGetUniformLocation(program_id, "diffuse_intensity");
 
-            if (light_position == -1 || light_color == -1 || ambient_intensity_loc == -1 || diffuse_intensity_loc == -1)
-            {
-                std::cerr << "Error: Uniformes de luz no encontrados en el shader." << std::endl;
-                return;
-            }
-
             // Cargar los valores al shader
             glUniform3fv(light_position, 1, glm::value_ptr(position));
             glUniform3fv(light_color, 1, glm::value_ptr(color));
@@ -54,21 +48,33 @@ namespace udit
             diffuse_intensity = diffuse;
         }
 
+        glm::vec3 get_position() const
+        {
+            return position;
+        }
+
+        glm::vec3 get_color() const
+        {
+            return color; 
+        }
+
+        float get_ambient_intensity() const
+        {
+            return ambient_intensity; 
+        }
+
+        float get_diffuse_intensity() const
+        {
+            return diffuse_intensity; 
+        }
 
         void draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix, GLuint program_id) override
         {
-            // Configurar uniformes
+
             GLint light_position = glGetUniformLocation(program_id, "light.position");
             GLint light_color = glGetUniformLocation(program_id, "light.color");
             GLint ambient_intensity_loc = glGetUniformLocation(program_id, "ambient_intensity");
             GLint diffuse_intensity_loc = glGetUniformLocation(program_id, "diffuse_intensity");
-
-            // Verificar que los uniformes se encuentren correctamente
-            if (light_position == -1 || light_color == -1 || ambient_intensity_loc == -1 || diffuse_intensity_loc == -1)
-            {
-                std::cerr << "Error: Uniformes de luz no encontrados en el shader." << std::endl;
-                return;
-            }
 
             // Cargar los valores al shader
             glUniform3fv(light_position, 1, glm::value_ptr(position));

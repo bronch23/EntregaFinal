@@ -24,6 +24,7 @@
 
             GLuint texture_id;
             bool   texture_is_loaded;
+            std::string texture_base_path;
 
         public:
 
@@ -50,6 +51,8 @@
             {
                 return texture_is_loaded ? glBindTexture (GL_TEXTURE_CUBE_MAP, texture_id), true : false;
             }
+
+            std::string get_base_path() const;
 
         };
 

@@ -44,11 +44,10 @@ namespace udit
         camera_node = std::make_shared<CameraNode>(float(width) / height);
         root_node->add_child(camera_node);
 
-        auto skybox_node = std::make_shared<SkyboxNode>("../../../shared/assets/cubemap-", camera_node);
+        skybox_node = std::make_shared<SkyboxNode>("../../../shared/assets/cubemap-", camera_node);
         root_node->add_child(skybox_node);
 
-        // Crear el nodo de luz y agregarlo al grafo
-        auto light_node = std::make_shared<LightNode>(program_id);
+        light_node = std::make_shared<LightNode>(program_id);
         root_node->add_child(light_node);
 
         mesh_node = std::make_shared<MeshNode>(); 
@@ -74,7 +73,7 @@ namespace udit
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Wolf_BaseColor.png"));
 
-        auto elevation_node = std::make_shared<ElevationMeshNode>("../../../shared/assets/height-map.png", 100.0f);
+        elevation_node = std::make_shared<ElevationMeshNode>("../../../shared/assets/height-map.png", 100.0f);
         elevation_node->set_position(glm::vec3(300.0f, -100.f, -400.0f));
         elevation_node->load_texture("../../../shared/assets/uv-checker.png");
         root_node->add_child(elevation_node);
@@ -369,6 +368,79 @@ namespace udit
                     });
             }
         }
+
+        if (elevation_node)
+        {
+            glm::vec3 position = elevation_node->get_position();
+            scene_data["elevation"] = {
+                {"heightmap", "../../../shared/assets/height-map.png"}, // Ruta del heightmap
+                {"position", {position.x, position.y, position.z}},     // Posición
+                {"scale", 100.0f}                                       // Escala
+            };
+        }
+
+        if (light_node) // Asegúrate de que el nodo de luz existe
+        {
+            glm::vec3 position = light_node->get_position();
+            glm::vec3 color = light_node->get_color();
+            float ambient_intensity = light_node->get_ambient_intensity();
+            float diffuse_intensity = light_node->get_diffuse_intensity();
+
+            scene_data["lights"].push_back({
+                {"type", "directional"},
+                {"position", {position.x, position.y, position.z}},
+                {"color", {color.r, color.g, color.b}},
+                {"ambient_intensity", ambient_intensity},
+                {"diffuse_intensity", diffuse_intensity}
+                });
+        }
+
+        if (skybox_node) // Verificar que el skybox existe
+        {
+            std::string texture_base_path = skybox_node->get_texture_base_path();
+
+            scene_data["skybox"] = {
+                {"texture_base_path", texture_base_path}
+            };
+        }
+
+        scene_data["postprocessing"] = {
+            {"vertex_shader", R"(
+            #version 330 core
+            layout(location = 0) in vec2 position;
+            layout(location = 1) in vec2 tex_coords;
+
+            out vec2 uv;
+
+            void main()
+            {
+                uv = tex_coords;
+                gl_Position = vec4(position, 0.0, 1.0);
+            }
+             )"},
+            {"fragment_shader", R"(
+            #version 330 core
+            in vec2 uv;
+            out vec4 frag_color;
+
+            uniform sampler2D screen_texture;
+
+            void main()
+            {
+                vec3 color = texture(screen_texture, uv).rgb;
+
+                color.r += 0.3;
+                color.g += 0.2;
+                color.b *= 0.7;
+                frag_color = vec4(color, 1.0);
+            }
+            )"},
+            {"parameters", {
+            {"effect_intensity", 0.5},
+            {"color_adjustment", {1.2, 1.0, 0.8}}
+            }},
+            {"framebuffer_size", {width, height}}
+            };
 
         // Escribir el JSON en un archivo
         std::ofstream file(file_path);

@@ -9,7 +9,7 @@
 namespace udit
 {
 
-    Texture_Cube::Texture_Cube(const std::string & texture_base_path)
+    Texture_Cube::Texture_Cube(const std::string& texture_base_path) : texture_base_path(texture_base_path)
     {
         texture_is_loaded = false;
 
@@ -77,7 +77,11 @@ namespace udit
         texture_is_loaded = true;
     }
 
-    
+    std::string Texture_Cube::get_base_path() const
+    {
+        return texture_base_path;
+    }
+
     std::shared_ptr< Texture_Cube::Color_Buffer > Texture_Cube::load_image (const std::string & image_path)
     {
         // Se carga la imagen del archivo usando SOIL2:

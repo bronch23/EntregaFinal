@@ -39,6 +39,7 @@
         public:
 
             void render(const glm::mat4& view_matrix, const glm::mat4& projection_matrix);
+            std::string get_texture_base_path() const;
 
         private:
 
