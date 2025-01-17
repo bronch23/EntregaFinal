@@ -1,0 +1,51 @@
+{
+    "camera": {
+        "aspect_ratio": 1.7777777910232544,
+        "fov": 60.0,
+        "position": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "rotation": [
+            0.0,
+            0.0,
+            0.0
+        ]
+    },
+    "meshes": [
+        {
+            "model_path": "../../../shared/assets/Foxx.fbx",
+            "position": [
+                0.0,
+                -20.0,
+                -255.0
+            ],
+            "rotation_speed": 1.0,
+            "texture_path": "../../../shared/assets/Fox_BaseColor.png",
+            "transparency": 0.8999999761581421
+        },
+        {
+            "model_path": "../../../shared/assets/Pig.fbx",
+            "position": [
+                -300.0,
+                -20.0,
+                -400.0
+            ],
+            "rotation_speed": 1.0,
+            "texture_path": "../../../shared/assets/Pig_BaseColor.png",
+            "transparency": 1.0
+        },
+        {
+            "model_path": "../../../shared/assets/Wolf.fbx",
+            "position": [
+                300.0,
+                -150.0,
+                -400.0
+            ],
+            "rotation_speed": 1.0,
+            "texture_path": "../../../shared/assets/Wolf_BaseColor.png",
+            "transparency": 1.0
+        }
+    ]
+}

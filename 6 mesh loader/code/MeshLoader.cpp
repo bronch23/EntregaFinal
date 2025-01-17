@@ -12,6 +12,10 @@ namespace udit
         MeshNode::Mesh mesh;
         mesh.model_matrix = model_matrix;
 
+        // Asignar rutas
+        mesh.model_path = mesh_file_path;
+        mesh.texture_path = texture_path;
+
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(mesh_file_path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices);
 
@@ -70,4 +74,5 @@ namespace udit
 
         return mesh;
     }
+
 }

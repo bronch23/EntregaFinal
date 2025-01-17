@@ -9,6 +9,7 @@ namespace udit
     {
         meshes.push_back(mesh);
     }
+
     void MeshNode::update_meshes(float delta_time)
     {
         for (auto& mesh : meshes)

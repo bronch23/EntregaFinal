@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm.hpp>
 #include <vector>
+#include <string>
 
 namespace udit
 {
@@ -20,7 +21,9 @@ namespace udit
             float rotation_speed = 1.0f;
             bool rotate_y = false;
 
-            float transparency = 1.0f; // Nuevo atributo para transparencia (1.0 = opaco, 0.0 = completamente transparente)
+            float transparency = 1.0f;
+            std::string model_path;      // Ruta del modelo
+            std::string texture_path;    // Ruta de la textura
         };
 
         std::vector<Mesh> meshes;

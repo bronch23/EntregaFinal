@@ -1,3 +1,4 @@
+#pragma once
 
 #include "Scene.hpp"
 #include <iostream>
@@ -12,7 +13,8 @@
 #include "MeshLoader.hpp"
 #include "LightNode.hpp"
 #include "ElevationNode.hpp"
-
+#include <fstream> // Para guardar en archivos
+#include "json.hpp"
 
 namespace udit
 {
@@ -37,6 +39,8 @@ namespace udit
 
         resize(width, height);
 
+
+
         camera_node = std::make_shared<CameraNode>(float(width) / height);
         root_node->add_child(camera_node);
 
@@ -47,8 +51,8 @@ namespace udit
         auto light_node = std::make_shared<LightNode>(program_id);
         root_node->add_child(light_node);
 
-        auto mesh_node = std::make_shared<MeshNode>();
-        root_node->add_child(mesh_node);
+        mesh_node = std::make_shared<MeshNode>(); 
+        root_node->add_child(mesh_node);        
 
         // Cargar y asignar mallas al nodo
         mesh_node->add_mesh(MeshLoader::load_mesh("../../../shared/assets/Foxx.fbx",
@@ -337,6 +341,47 @@ namespace udit
         glDeleteShader(fragment_shader);
 
         return program_id;
+    }
+
+    void Scene::save_scene(const std::string& file_path)
+    {
+        json scene_data;
+
+        // Guardar datos de la cámara
+        scene_data["camera"] = {
+            {"position", {camera_node->position.x, camera_node->position.y, camera_node->position.z}},
+            {"rotation", {camera_node->rotation.x, camera_node->rotation.y, camera_node->rotation.z}},
+            {"aspect_ratio", camera_node->get_ratio()},
+            {"fov", camera_node->get_fov()}
+        };
+
+        if (mesh_node) // Usar la referencia directa al MeshNode
+        {
+            for (const auto& mesh : mesh_node->meshes) // Recorrer todas las mallas
+            {
+                glm::vec3 position = glm::vec3(mesh.model_matrix[3]); // Extraer posición de la matriz de modelo
+                scene_data["meshes"].push_back({
+                    {"model_path", mesh.model_path},       // Ruta del modelo
+                    {"texture_path", mesh.texture_path},   // Ruta de la textura
+                    {"position", {position.x, position.y, position.z}}, // Posición
+                    {"rotation_speed", mesh.rotation_speed}, // Velocidad de rotación
+                    {"transparency", mesh.transparency}     // Transparencia
+                    });
+            }
+        }
+
+        // Escribir el JSON en un archivo
+        std::ofstream file(file_path);
+        if (file.is_open())
+        {
+            file << scene_data.dump(4); // Guardar con formato legible (indentación 4)
+            file.close();
+            std::cout << "Escena guardada en " << file_path << std::endl;
+        }
+        else
+        {
+            std::cerr << "Error al guardar la escena en " << file_path << std::endl;
+        }
     }
 
 

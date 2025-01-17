@@ -29,11 +29,14 @@ public:
     {
         return camera.get_transform_matrix_inverse();
     }
-    void set_aspect_ratio(float ratio)
+    float get_ratio()
     {
-        camera.set_ratio(ratio);
+        return camera.get_ratio();
     }
-
+    float get_fov()
+    {
+        return camera.get_fov();
+    }
     // Métodos de rotación y posición
     void add_rotation_delta(float delta_x, float delta_y)
     {

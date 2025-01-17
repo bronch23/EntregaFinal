@@ -14,10 +14,12 @@
 #include "MeshNode.hpp"
 #include "CameraNode.hpp"
 #include "FrameBuffer.hpp"
+#include "json.hpp"
 namespace udit
 {
     class Scene
     {
+        using json = nlohmann::json;
     public:
 
         struct Mesh
@@ -41,7 +43,8 @@ namespace udit
         void on_click(int pointer_x, int pointer_y, bool down);
         void on_drag(int pointer_x, int pointer_y);
         void initialize_screen_quad();
-
+        void save_scene(const std::string& file_path);
+        std::shared_ptr<MeshNode> mesh_node; // Referencia directa al MeshNode
 
     private:
 

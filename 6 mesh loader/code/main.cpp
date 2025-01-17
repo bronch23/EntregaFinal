@@ -60,6 +60,9 @@ int main(int, char * [])
     // Crear la escena
     Scene scene(viewport_width, viewport_height);
 
+    //Guardar Escena
+    scene.save_scene("../../../shared/assets/scene_data.json");
+
     // Bucle principal
     bool running = true;
     while (running)
