@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\shared\code\Window.cpp" />
+    <ClCompile Include="..\..\code\ElevationNode.cpp" />
     <ClCompile Include="..\..\code\FrameBuffer.cpp" />
     <ClCompile Include="..\..\code\main.cpp" />
     <ClCompile Include="..\..\code\MeshLoader.cpp" />
@@ -94,6 +95,7 @@
     <ClInclude Include="..\..\..\shared\code\Window.hpp" />
     <ClInclude Include="..\..\code\Camera.hpp" />
     <ClInclude Include="..\..\code\CameraNode.hpp" />
+    <ClInclude Include="..\..\code\ElevationNode.hpp" />
     <ClInclude Include="..\..\code\FrameBuffer.hpp" />
     <ClInclude Include="..\..\code\LightNode.hpp" />
     <ClInclude Include="..\..\code\MeshLoader.hpp" />

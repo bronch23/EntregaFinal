@@ -11,6 +11,7 @@
 #include "SkyboxNode.hpp"
 #include "MeshLoader.hpp"
 #include "LightNode.hpp"
+#include "ElevationNode.hpp"
 
 
 namespace udit
@@ -68,6 +69,11 @@ namespace udit
             glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(300.f, -150.f, -400.f)),
                 glm::radians(-90.0f), glm::vec3(1.f, 0.f, 0.f)),
             "../../../shared/assets/Wolf_BaseColor.png"));
+
+        auto elevation_node = std::make_shared<ElevationMeshNode>("../../../shared/assets/height-map.png", 100.0f);
+        elevation_node->set_position(glm::vec3(300.0f, -100.f, -400.0f));
+        elevation_node->load_texture("../../../shared/assets/uv-checker.png");
+        root_node->add_child(elevation_node);
 
         angle_around_x = angle_delta_x = 0.0;
         angle_around_y = angle_delta_y = 0.0;
